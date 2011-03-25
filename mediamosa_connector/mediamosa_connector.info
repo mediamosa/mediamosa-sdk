@@ -1,0 +1,9 @@
+; $Id: $
+name = "MediaMosa - connector"
+description = "The MediaMosa connector enables Drupal modules to communicate with the MediaMosa REST interface."
+package = "MediaMosa - SDK"
+version = "2.0.1"
+core = 6.x
+
+; Dependencies (module names)
+dependencies[] = mediamosa_sdk
