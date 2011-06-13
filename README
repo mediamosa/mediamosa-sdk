@@ -33,5 +33,14 @@ The files
 
 Usage
 -----
+$my_mediamosa_connector = new mediamosa_connector('testapp', 'password', 'http://app1.mediamosa.local');
+
+try {
+  $response = $my_mediamosa_connector->request('version', array('fatal' => TRUE)); 
+}
+catch (Exception $e) {
+  // .. something went wrong.
+  // Do some handeling of the exception here and don't continue for this point.
+}
 
 
