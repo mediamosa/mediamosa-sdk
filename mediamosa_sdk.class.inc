@@ -68,6 +68,7 @@ class mediamosa_sdk {
   const ERRORCODE_DIR_UNABLE_TO_CREATE = 618;
   // When functions or mods are not available, like GD functions (image_*).
   const ERRORCODE_MISSING_EXTENSION = 619;
+  const ERRORCODE_NO_MEDIAFILE_FOUND_FOR_TAG = 620;
 
   const ERRORCODE_ASSET_NOT_FOUND = 700;
   const ERRORCODE_MEDIAFILE_NOT_FOUND = 701;
@@ -92,6 +93,8 @@ class mediamosa_sdk {
   const ERRORCODE_CANT_PLAY_MEDIAFILE = 720;
   const ERRORCODE_CANT_TRANSCODE_MEDIAFILE = 721;
   const ERRORCODE_APP_DISABLED = 722;
+  const ERRORCODE_MEDIAFILE_IS_NOT_ORIGINAL = 723;
+  const ERRORCODE_INVALID_MEDIAFILE_RELATION = 724;
 
   const ERRORCODE_UNKNOWN_JOB = 800;
 
@@ -124,9 +127,17 @@ class mediamosa_sdk {
   const ERRORCODE_METADATA_DEFINITION_NOT_EMPTY = 1023;
   const ERRORCODE_INVALID_METADATA_DEFINITION = 1024;
   const ERRORCODE_HOSTNAME_TYPE_NO_MATCH_GROUP_TYPE = 1025;
+
+  // Old 2.x naming.
   const ERRORCODE_AUT_GROUP_ALREADY_EXISTS = 1026;
   const ERRORCODE_AUT_GROUP_NOT_FOUND = 1027;
   const ERRORCODE_AUT_NAME_NOT_FOUND = 1028;
+
+  // 3.x ++ renames.
+  const ERRORCODE_ACL_GROUP_ALREADY_EXISTS = 1026;
+  const ERRORCODE_ACL_GROUP_NOT_FOUND = 1027;
+  const ERRORCODE_ACL_NAME_NOT_FOUND = 1028;
+
   const ERRORCODE_INVALID_DATA_PARAMETER = 1029;
   const ERRORCODE_FTP_BATCH_NOT_FOUND = 1030;
   const ERRORCODE_CANT_RETYPE_GROUP_MUST_BE_EMPTY = 1031;
@@ -183,6 +194,7 @@ class mediamosa_sdk {
   const ERRORCODE_UNKNOWN_JOB_STATUS = 1154;
   const ERRORCODE_UNKNOWN_JOB_PROGRESS = 1155;
   const ERRORCODE_STILL_IS_NOT_CREATABLE = 1156;
+  const ERRORCODE_CREATING_DERIVATIVE = 1157;
 
   const ERRORCODE_STARTING_JOB_FAILED = 1301;
 
@@ -234,6 +246,7 @@ class mediamosa_sdk {
   const TYPE_ALPHA_NUM_UNDERSCORE_TAG    = 'ALPHA_NUM_UNDERSCORE_TAG'; // same as ALPHA_NUM_UNDERSCORE, but does not allow the first char to be non alpha.
   const TYPE_RESPONSE_TYPE               = 'RESPONSE_TYPE';
   const TYPE_STRING                      = 'STRING';
+  const TYPE_MEDIAMOSA_VERSION           = 'MEDIAMOSA_VERSION';
   const TYPE_DATETIME                    = 'DATETIME';
   const TYPE_DATETIME_UTC                = 'DATETIME_UTC'; // Is in UTC (already).
   const TYPE_DATE                        = 'DATETIME';//@todo: Extend the DATETIME check and throw errors when time values exist. REMEMBER about utc conversion.
@@ -247,8 +260,13 @@ class mediamosa_sdk {
   const TYPE_URI                         = 'URI'; // URI type
   const TYPE_URL                         = 'URL'; // URL type (checked with simple parse_url)
   const TYPE_URL_URI                     = 'URL'; // URL / URI type (checked with simple parse_url)
-  const TYPE_AUT_GROUP_TYPE              = 'AUT_GROUP_TYPE';
+  const TYPE_ACL_GROUP_TYPE              = 'ACL_GROUP_TYPE';
   const TYPE_DELETE                      = 'DELETE';
+  const TYPE_OAUTH_SIGNATURE             = 'OAUTH_SIGNATURE';
+  const TYPE_OAUTH_SIGNATURE_METHOD      = 'OAUTH_SIGNATURE_METHOD';
+  const TYPE_OAUTH_VERSION               = 'OAUTH_VERSION';
+  const TYPE_OAUTH_TOKEN                 = 'OAUTH_TOKEN';
+  const TYPE_OAUTH_VERIFIER              = 'OAUTH_VERIFIER';
 
   const TYPE_USER_ID                     = 'USER_ID';
   const TYPE_GROUP_ID                    = 'GROUP_ID';
@@ -292,6 +310,23 @@ class mediamosa_sdk {
   // Use to select what is slaved to other apps.
   const TYPE_BOOL_IS_SLAVED              = 'BOOL_IS_SLAVED';
 
+  // Job constants.
+  const JOB_STATUS = 'status';
+  const JOB_STATUS_WAITING = 'WAITING';
+  const JOB_STATUS_INPROGRESS = 'INPROGRESS';
+  const JOB_STATUS_FINISHED = 'FINISHED';
+  const JOB_STATUS_FAILED = 'FAILED';
+  const JOB_STATUS_CANCELLED = 'CANCELLED';
+  const JOB_STATUS_CANCELLING = 'CANCELING';// Future exp; THIS IS NOT YET ADDED TO THE ENUM IN DB 'job' table.
+  const PROGRESS = 'progress';
+  const JOB_TYPE = 'job_type';
+  const JOB_TYPE_TRANSCODE = 'TRANSCODE';
+  const JOB_TYPE_RETRANSCODE = 'RETRANSCODE';
+  const JOB_TYPE_STILL = 'STILL';
+  const JOB_TYPE_UPLOAD = 'UPLOAD';
+  const JOB_TYPE_ANALYSE = 'ANALYSE';
+  const JOB_TYPE_DELETE_MEDIAFILE = 'DELETE_MEDIAFILE';
+
   // ---------------------------------------------------------------- Functions.
   /**
    * Return the base URL for the SDK menu/URL.
@@ -333,6 +368,11 @@ class mediamosa_sdk {
       case self::TYPE_CQL_ASSET:
       case self::TYPE_CQL_COLLECTION:
       case self::TYPE_CQL_JOB:
+      case self::TYPE_OAUTH_SIGNATURE:
+      case self::TYPE_OAUTH_SIGNATURE_METHOD:
+      case self::TYPE_OAUTH_VERSION:
+      case self::TYPE_OAUTH_TOKEN:
+      case self::TYPE_OAUTH_VERIFIER:
         return self::TYPE_STRING;
 
       case self::TYPE_SEARCH_INT:
@@ -345,5 +385,32 @@ class mediamosa_sdk {
     }
 
     return $type;
+  }
+
+  /**
+   * Parse MediaMosa version.
+   *
+   * major.minor[.release[.build[ optional info]]]
+   *
+   * @return array
+   */
+  static public function parse_version($version) {
+    list($major, $minor, $release, $build, $info) = preg_split("/[.:-]+/", $version, 5) + array(0 => 1, 1 => 0, 2 => 0, 3 => 1, 4 => '');
+    return array(
+      'major' => $major,
+      'minor' => $minor,
+      'release' => $release,
+      'build' => $build,
+      'info' => $info,
+    );
+  }
+
+  /**
+   * Returns the database stamp as a viewable date.
+   *
+   * @param string $datestamp (YYYY-MM-DD 00:00:00)
+   */
+  static public function datestamp2date($datestamp, $type = 'medium', $format = '', $timezone = NULL, $langcode = NULL) {
+    return format_date(strtotime($datestamp), $type, $format, $timezone, $langcode);
   }
 }

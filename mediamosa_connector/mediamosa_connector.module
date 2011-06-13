@@ -73,47 +73,49 @@ function mediamosa_connector_permission() {
 }
 
 /**
- * Implement hook_block().
+ * Implement hook_block_info().
  *
  * Displays the debug information of the mediamosa_connector.
  */
-function mediamosa_connector_block($op = 'list', $delta = 0, $edit = array()) {
+function mediamosa_connector_block_info() {
+  $blocks['mediamosa-connector'] = array(
+    'info' => t('MediaMosa Connector debug info'),
+     // Cached elsewhere.
+    'cache' => DRUPAL_NO_CACHE,
+  );
 
-  if ($op == 'list') {
-    $block[0] = array(
-      'info' => t('MediaMosa Connector debug info'),
-    );
+  return $blocks;
+}
 
-    return $block;
-  }
-  elseif ($op == 'view') {
-    $block = array();
-
-    if ($delta == 0) {
-      // Dont show blocks on POST pages.
-      if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+/**
+ * Implements hook_block_view().
+ *
+ * Generate a block with the debug information of the mediamosa_connector.
+ */
+function mediamosa_connector_block_view($delta = '') {
+  switch ($delta) {
+    case 'mediamosa-connector':
+      if ($_SERVER['REQUEST_METHOD'] != 'POST' && variable_get('mediamosa_connector_debug', FALSE)) {
         if (isset($_SESSION['mediamosa_connector_debug_info'])) {
-          $block['subject'] = t('MediaMosa Connector request info');
           $header = array(t('Method'), t('Call'), t('Time (sec)'));
           $rows = array();
           foreach ($_SESSION['mediamosa_connector_debug_info'] as $log) {
-
-            // Add row
-            $rows[] = theme('mediamosa_connector_call', $log);
+            // Add row.
+            $rows[] = theme('mediamosa_connector_call', array('log' => $log));
           }
 
           $block['content'] = 'REST calls issued to build this page.';
-          $block['content'] .= theme('table', $header, $rows, array('id' => 'admin-dblog'));
+          $block['content'] .= implode('', $rows);
           unset($_SESSION['mediamosa_connector_debug_info']);
         }
 
         $block['subject'] = t('MediaMosa Connector request info');
         $block['content'] = isset($block['content']) ? $block['content'] : 'No calls done by MediaMosa Connector';
-      }
-    }
 
-    return $block;
+        return $block;
+      }
   }
+
 }
 
 /**
@@ -179,6 +181,54 @@ function mediamosa_connector_settings() {
   $form = system_settings_form($form);
 
   return $form;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function mediamosa_connector_theme() {
+  return array(
+    'mediamosa_connector_call' => array(
+      'variables' => array('log' => array()),
+    ),
+  );
+}
+
+/**
+ * Generate the HTML output for a row in the REST call output block.
+ *
+ * @ingroup themeable
+ */
+function theme_mediamosa_connector_call($variables) {
+
+  if (empty($variables['log'])) {
+    return array();
+  }
+
+  $log = $variables['log'];
+
+  $form['restcall'] = array(
+    '#type' => 'fieldset',
+    '#title' => '[' . $log['method'] . '] ' . $log['url'] . ' (' . $log['result_id'] . (empty($log['result_description']) ? '' : ': ' . $log['result_description']) . '), (' .  $log['response_time'] . ' sec)',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array('collapsible collapsed')),
+  );
+
+  $form['restcall']['data'] = array(
+    '#prefix' => '<pre><div align="left">',
+    '#suffix' => '</div></pre>',
+    '#markup' => highlight_string($log['data'], TRUE),
+  );
+
+  // Fill array.
+  $call = array(drupal_render($form));
+
+  if (isset($log['errors'])) {
+    $call[] = theme('table', array(sprintf('Errors during call %s.', $log['url'])), $log['errors']);
+  }
+
+  return implode('<br />', $call);
 }
 
 /**

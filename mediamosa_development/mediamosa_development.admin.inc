@@ -80,11 +80,15 @@ function _ajax_execute_rest_call() {
 
   // Load the form based upon the $_POST data sent via the ajax call.
   list($form, $form_state) = ajax_get_form();
+
   // Fix drupal notice.
   $form_state['values'] = isset($form_state['values']) ? $form_state['values'] : array();
 
   // Get the select REST call.
   $uri_method = isset($_SESSION['mediamosa_development_params']['uri']) ? $_SESSION['mediamosa_development_params']['uri'] : '';
+
+  // Version to support.
+  $mediamosa_version = isset($_SESSION['mediamosa_development_params']['mediamosa_version']) ? $_SESSION['mediamosa_development_params']['mediamosa_version'] : '';
 
   if (empty($uri_method)) {
     return array('#type' => 'ajax', '#commands' => array(), '#header' => FALSE);
@@ -131,6 +135,15 @@ function _ajax_execute_rest_call() {
     // Store the value.
     $data[$name] = $form_state['input']['_' . $name];
   }
+
+  // Get the version from form.
+  $mediamosa_version = $form_state['input']['mediamosa_version'];
+
+  // Provide the mediamosa_version.
+  if (!empty($mediamosa_version)) {
+    $data['mediamosa_version'] = $mediamosa_version;
+  }
+
 
   // Get the selected app.
   $app_id = $form_state['input']['client_application'];
@@ -187,19 +200,29 @@ function _mediamosa_development_set_rest_call($uri, $method) {
  * Get the REST calls.
  */
 function _mediamosa_development_get_rest_calls() {
+
+  static $rest_calls = array();
+
+  if (!empty($rest_calls)) {
+    return $rest_calls;
+  }
+
   // When we are part of the MediaMosa installation, then use the REST calls
   // here.
   if (module_exists('mediamosa')) {
     $rest_calls = module_invoke_all('mediamosa_register_rest_call');
 
+    $versions = array();
     $rest_call_options = array('' => 'Select Rest call');
     foreach ($rest_calls as $uri => $rest_call) {
       foreach ($rest_call as $method => $rest_call_data) {
         $rest_call_options[$uri . '|' . $method] = $uri . ' [' . $method . ']';
+        $versions[$rest_call_data[mediamosa_rest_call::VERSION]] = t('version @version', array('@version' => $rest_call_data[mediamosa_rest_call::VERSION]));
       }
     }
 
-    return $rest_call_options;
+    $rest_calls = array('rest_call_options' => $rest_call_options, 'versions' => $versions);
+    return $rest_calls;
   }
 
   // Ok, try to use connector to get the REST calls.
@@ -207,13 +230,14 @@ function _mediamosa_development_get_rest_calls() {
   $mediamosa_connector = new mediamosa_connector();
 
   // Get response.
-  $response = mediamosa_connector::response2array($mediamosa_connector->request_get('rest', array('data' => array('limit' => 0))));
+  $response = mediamosa_connector::response2array($mediamosa_connector->request_get('rest', array('mediamosa_version' => '2.0', 'data' => array('limit' => 0))));
 
   $rest_call_options = array();
 
   if ($response && !empty($response['items']['item'])) {
     foreach ($response['items']['item'] as $item) {
       $rest_call_options[$item['uri'] . '|' . $item['method']] = $item['uri'] . ' [' . $item['method'] . ']';
+      $versions[$item[mediamosa_rest_call::VERSION]] = t('version @version', array('@version' => $item[mediamosa_rest_call::VERSION]));
     }
   }
 
@@ -221,20 +245,20 @@ function _mediamosa_development_get_rest_calls() {
     drupal_set_message(t('No REST calls found, check connector.'), 'error');
   }
 
-  return $rest_call_options;
+  $rest_calls = array('rest_call_options' => $rest_call_options, 'versions' => $versions);
+  return $rest_calls;
 }
 
 /**
  * Get the URI information.
  */
 function _mediamosa_development_get_var_setup($uri, $method) {
-
   // In core?
   if (module_exists('mediamosa')) {
-    $uri_definition = mediamosa_rest::get_uri_definition($uri, $method);
+    $rest_call = mediamosa_rest::get_uri_definition($uri, $method);
 
-    if (!empty($uri_definition)) {
-      return array_merge(mediamosa_rest::get_var_setup($uri_definition), array(mediamosa_rest_call_dummy::TITLE => $uri_definition[mediamosa_rest_call_dummy::TITLE], mediamosa_rest_call_dummy::DESCRIPTION => $uri_definition[mediamosa_rest_call_dummy::DESCRIPTION]));
+    if (!empty($rest_call)) {
+      return array_merge(mediamosa_rest::get_var_setup($rest_call), array(mediamosa_rest_call_dummy::TITLE => $rest_call[mediamosa_rest_call_dummy::TITLE], mediamosa_rest_call_dummy::DESCRIPTION => $rest_call[mediamosa_rest_call_dummy::DESCRIPTION]));
     }
   }
 
@@ -244,7 +268,7 @@ function _mediamosa_development_get_var_setup($uri, $method) {
   $mediamosa_connector = new mediamosa_connector();
 
   // Get response.
-  $response = mediamosa_connector::response2array($mediamosa_connector->request_get('rest', array('data' => array('limit' => 0))));
+  $response = mediamosa_connector::response2array($mediamosa_connector->request_get('rest', array('mediamosa_version' => '2.0', 'data' => array('limit' => 0))));
 
   // Build the var_setup.
   $var_setup = array();
@@ -285,9 +309,15 @@ function mediamosa_development_rest_form($form, $form_state) {
   drupal_add_css(drupal_get_path('module', 'mediamosa_development') . '/mediamosa_development.css');
 
   // Get all the REST calls.
-  $rest_call_options = _mediamosa_development_get_rest_calls();
+  $rest_calls = _mediamosa_development_get_rest_calls();
 
+  $rest_call_options = $rest_calls['rest_call_options'];
   ksort($rest_call_options);
+  $versions = $rest_calls['versions'];
+  krsort($versions);
+
+  // Include the latest setting to versions.
+  $versions = array_merge(array('' => 'Use client application setting'), $versions);
 
   $form = array();
 
@@ -320,6 +350,14 @@ function mediamosa_development_rest_form($form, $form_state) {
     '#title' => 'REST call URI',
     '#options' => $apps,
     '#default_value' => empty($_SESSION['mediamosa_development_params']['client_application']) ? '' : $_SESSION['mediamosa_development_params']['client_application'],
+  );
+
+  $form['rest']['mediamosa_version'] = array(
+    '#type' => 'select',
+    '#title' => 'REST interface version',
+    '#description' => t("Select the version in which MediaMosa must return its output in. Leave it on 'Latest' for the current version."),
+    '#options' => $versions,
+    '#default_value' => empty($_SESSION['mediamosa_development_params']['mediamosa_version']) ? '' : $_SESSION['mediamosa_development_params']['mediamosa_version'],
   );
 
   if (empty($session['uri'])) {
@@ -414,7 +452,8 @@ function mediamosa_development_rest_form_submit($form, &$form_state) {
     case t('Select'):
       // Set uri in session.
       $_SESSION['mediamosa_development_params']['uri'] = isset($form_state['input']['uri']) ? $form_state['input']['uri'] : '';
-      $_SESSION['mediamosa_development_params']['client_application'] = isset($form_state['input']['uri']) ? $form_state['input']['client_application'] : '';
+      $_SESSION['mediamosa_development_params']['client_application'] = isset($form_state['input']['client_application']) ? $form_state['input']['client_application'] : '';
+      $_SESSION['mediamosa_development_params']['mediamosa_version'] = isset($form_state['input']['mediamosa_version']) ? $form_state['input']['mediamosa_version'] : '';
 
       if (empty($_SESSION['mediamosa_development_params']['uri'])) {
         break;
@@ -440,7 +479,7 @@ function _mediamosa_build_form($form) {
   // Clear them.
   $required = $optional = array();
 
-  $skip = array('app_id');
+  $skip = array('app_id', 'mediamosa_version');
 
   // Sort vars on name.
   ksort($var_setup['vars']);
@@ -610,7 +649,7 @@ function _build_param($name, $var, $required) {
     case mediamosa_sdk::TYPE_APP_ID:
     case mediamosa_sdk::TYPE_INT:
     case mediamosa_sdk::TYPE_UINT:
-    case mediamosa_sdk::TYPE_AUT_GROUP_TYPE:
+    case mediamosa_sdk::TYPE_ACL_GROUP_TYPE:
     case mediamosa_sdk::TYPE_TICKET_ID:
 
     case mediamosa_sdk::TYPE_URI:
@@ -646,5 +685,6 @@ function _build_param($name, $var, $required) {
       $item['#default_value'] = $var[mediamosa_rest_call_dummy::VAR_DEFAULT_VALUE];
     }
   }
+
   return $item;
 }
