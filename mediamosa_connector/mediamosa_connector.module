@@ -30,7 +30,8 @@
  * and POST functions to communicate with MediaMosa.
  */
 
-require_once ('mediamosa_connector.class.inc');
+require_once 'mediamosa_connector.response.class.inc';
+require_once 'mediamosa_connector.class.inc';
 
 /**
  * Implement hook_menu().

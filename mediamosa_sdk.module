@@ -28,4 +28,4 @@
  * @file
  * MediaMosa Sofware Development Kit.
  */
-require_once('mediamosa_sdk.inc');
+require_once 'mediamosa_sdk.class.inc';
