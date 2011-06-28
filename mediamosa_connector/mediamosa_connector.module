@@ -90,7 +90,7 @@ function mediamosa_connector_block($op = 'list', $delta = 0, $edit = array()) {
           foreach ($_SESSION['mediamosa_connector_debug_info'] as $log) {
 
             // Add row
-            $rows[] = theme('mediamosa_connector_call', $log);
+            $rows[] = theme('mediamosa_connector_call', reset($log));
           }
 
           $block['content'] = 'REST calls issued to build this page.';

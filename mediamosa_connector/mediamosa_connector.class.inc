@@ -453,7 +453,7 @@ class mediamosa_connector {
     }
 
     if (variable_get('mediamosa_connector_debug', FALSE)) {
-      $_SESSION['mediamosa_connector_debug_info'] = $this->log;
+      $_SESSION['mediamosa_connector_debug_info'][] = $this->log;
     }
 
     // Must be HTTP 200 response.
