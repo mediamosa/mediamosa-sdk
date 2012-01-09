@@ -43,4 +43,3 @@ catch (Exception $e) {
   // Do some handeling of the exception here and don't continue for this point.
 }
 
-
