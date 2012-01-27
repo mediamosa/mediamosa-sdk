@@ -1,4 +1,3 @@
-; $Id: $
 name = "MediaMosa SDK"
 description = "The MediaMosa software development kit contains a collection of modules and classes used for creating Drupal websites supporting MediaMosa."
 package = "MediaMosa - SDK"
