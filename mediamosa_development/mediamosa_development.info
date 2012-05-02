@@ -1,4 +1,4 @@
-name = "MediaMosa - development"
+e = "MediaMosa - development"
 description = "Enables to test and execute REST calls. For development purposes only."
 package = "MediaMosa - SDK"
 version = "7.x-2.1"
