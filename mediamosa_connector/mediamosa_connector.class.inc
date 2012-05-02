@@ -250,7 +250,7 @@ class mediamosa_connector {
             $this->last_error_text = t('@description (@code)', array('@description' => $result_description, '@code' => $result_id));
           }
 
-          throw new Exception($this->last_error_text, self::ERROR_RESPONSE_RETURNED_ERROR);
+          throw new Exception($this->last_error_text, $result_id);
         }
 
         return $response;
@@ -942,7 +942,7 @@ class mediamosa_connector {
   /**
    * Variable_get wrapper for connection dependent variables.
    */
-  public function variable_get($name, $default = NULL) {
+  public static function variable_get($name, $default = NULL) {
     // TODO
     return variable_get($name, $default);
   }
@@ -950,7 +950,7 @@ class mediamosa_connector {
   /**
    * Variable_set wrapper for connection dependent variables.
    */
-  public function variable_set($name, $value) {
+  public static function variable_set($name, $value) {
     // TODO
     variable_set($name, $value);
   }

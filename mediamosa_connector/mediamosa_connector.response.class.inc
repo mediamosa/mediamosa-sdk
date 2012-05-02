@@ -72,9 +72,6 @@ class mediamosa_connector_response {
       return $this->xml->$name;
     }
 
-    $trace = debug_backtrace();
-    trigger_error('Undefined property via mediamosa_connector_response::__get(): ' . $name . ' in ' . $trace[0]['file'] . ' on line ' . $trace[0]['line'], E_NOTICE);
-
     return null;
   }
 
