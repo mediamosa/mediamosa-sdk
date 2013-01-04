@@ -1,28 +1,5 @@
 <?php
 /**
- * MediaMosa is Open Source Software to build a Full Featured, Webservice Oriented Media Management and
- * Distribution platform (http://mediamosa.org)
- *
- * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
- * (http://www.kennisnet.nl)
- *
- * MediaMosa is based on the open source Drupal platform and
- * was originally developed by Madcap BV (http://www.madcap.nl)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, you can find it at:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- */
-
-/**
  * @file
  * This module contains the login procedure, cookie handling and basic GET
  * and POST functions to communicate with VP-X.
@@ -91,11 +68,11 @@ function mediamosa_connector_block_info() {
  * Generate a block with the debug information of the mediamosa_connector.
  */
 function mediamosa_connector_block_view($delta = '') {
-
   switch ($delta) {
     case 'mediamosa-connector':
       if ($_SERVER['REQUEST_METHOD'] != 'POST' && variable_get('mediamosa_connector_debug', FALSE)) {
         if (isset($_SESSION['mediamosa_connector_debug_info'])) {
+          $header = array(t('Method'), t('Call'), t('Time (sec)'));
           $rows = array();
           foreach ($_SESSION['mediamosa_connector_debug_info'] as $log) {
             // Add row.
@@ -199,19 +176,14 @@ function mediamosa_connector_theme() {
 function theme_mediamosa_connector_call($variables) {
 
   if (empty($variables['log'])) {
-    return '';
+    return array();
   }
 
   $log = $variables['log'];
 
-  $title = array();
-  $title[] = '' .  $log['response_time'] . ' sec';
-  $title[] = $log['result_id'];
-  $title[] = drupal_substr($log['url'], 0, 80);
-
   $form['restcall'] = array(
     '#type' => 'fieldset',
-    '#title' => implode(' - ', $title),
+    '#title' => '[' . $log['method'] . '] ' . $log['url'] . ' (' . $log['result_id'] . (empty($log['result_description']) ? '' : ': ' . $log['result_description']) . '), (' .  $log['response_time'] . ' sec)',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#attributes' => array('class' => array('collapsible collapsed')),
@@ -224,13 +196,11 @@ function theme_mediamosa_connector_call($variables) {
     '#markup' => highlight_string($log['data'], TRUE),
   );
 
-  $call = array();
-
   // Fill array.
-  $call[] = drupal_render($form);
+  $call = array(drupal_render($form));
 
   if (isset($log['errors'])) {
-    $call[] = theme('table', array('caption' => sprintf('Errors during call %s.', $log['url']), 'rows'=> $log['errors']));
+    $call[] = theme('table', array(sprintf('Errors during call %s.', $log['url'])), $log['errors']);
   }
 
   return implode('<br />', $call);

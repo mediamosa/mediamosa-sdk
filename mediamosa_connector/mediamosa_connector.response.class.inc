@@ -1,28 +1,5 @@
 <?php
 /**
- * MediaMosa is Open Source Software to build a Full Featured, Webservice
- * Oriented Media Management and Distribution platform (http://mediamosa.org)
- *
- * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
- * (http://www.kennisnet.nl)
- *
- * MediaMosa is based on the open source Drupal platform and
- * was originally developed by Madcap BV (http://www.madcap.nl)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, you can find it at:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- */
-
-/**
  * @file
  * Helper class to support output format of MediaMosa REST XML (or other formats
  * in the future).
@@ -38,6 +15,11 @@ class mediamosa_connector_response {
 
   // --------------------------------------------------------------------- Vars.
   // Store the SimpleXML here.
+  /**
+   * The SimpleXMLElement object.
+   *
+   * @var SimpleXMLElement
+   */
   public $xml = NULL;
 
   // -------------------------------------------------------------- Constructor.
@@ -70,7 +52,7 @@ class mediamosa_connector_response {
       return $this->xml->$name;
     }
 
-    return null;
+    return NULL;
   }
 
   /**
@@ -90,7 +72,6 @@ class mediamosa_connector_response {
     return $this->xml;
   }
 
-
   /**
    * Set the response using the data string.
    *
@@ -103,7 +84,7 @@ class mediamosa_connector_response {
 
     // Some might contain ; parts.
     if (strpos($content_type, ';') !== FALSE) {
-      list($content_type, $other) = explode(';', $content_type, 2);
+      list($content_type, ) = explode(';', $content_type, 2);
     }
 
     // Trim it.
@@ -116,7 +97,8 @@ class mediamosa_connector_response {
         break;
 
       default:
-        assert(0); // So its logged.
+        // So its logged.
+        assert(0);
         break;
     }
   }

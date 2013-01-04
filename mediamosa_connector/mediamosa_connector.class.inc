@@ -1,29 +1,8 @@
 <?php
 /**
- * MediaMosa is Open Source Software to build a Full Featured, Webservice Oriented Media Management and
- * Distribution platform (http://mediamosa.org)
- *
- * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
- * (http://www.kennisnet.nl)
- *
- * MediaMosa is based on the open source Drupal platform and
- * was originally developed by Madcap BV (http://www.madcap.nl)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, you can find it at:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- */
-
-/**
  * @file
+ * The mediamosa_connector class.
+ *
  * This module contains the login procedure, cookie handling and basic GET
  * and POST functions to communicate with MediaMosa.
  */
@@ -248,7 +227,7 @@ class mediamosa_connector {
             $this->last_error_text = t('@description (@code)', array('@description' => $result_description, '@code' => $result_id));
           }
 
-          throw new Exception($this->last_error_text, $result_id);
+          throw new Exception($this->last_error_text, self::ERROR_RESPONSE_RETURNED_ERROR);
         }
 
         return $response;
@@ -813,7 +792,7 @@ class mediamosa_connector {
    * @param string $ok
    * @param string $error
    */
-  static public function check_result($mediamosa_connector_response, $ok = NULL, $error = NULL) {
+  public static function check_result($mediamosa_connector_response, $ok = NULL, $error = NULL) {
     $result_id = $mediamosa_connector_response ? (int)$mediamosa_connector_response->xml->header->request_result_id : 0;
 
     if ($result_id != mediamosa_sdk::ERRORCODE_OKAY && $result_id != mediamosa_sdk::ERRORCODE_EMPTY_RESULT) {
