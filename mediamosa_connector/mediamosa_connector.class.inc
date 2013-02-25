@@ -477,7 +477,7 @@ class mediamosa_connector {
    *     code is set to the HTTP_REQUEST_TIMEOUT constant.
    *   - context: A context resource created with stream_context_create().
    *
-   * @return object
+   * @return mediamosa_connector_response
    *   An object that can have one or more of the following components:
    *   - request: A string containing the request body that was sent.
    *   - code: An integer containing the response status code, or the error code
