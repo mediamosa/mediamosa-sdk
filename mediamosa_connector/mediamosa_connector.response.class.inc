@@ -1,8 +1,10 @@
 <?php
 /**
  * @file
- * Helper class to support output format of MediaMosa REST XML (or other formats
- * in the future).
+ * Helper class to support output format of MediaMosa REST XML.
+ *
+ * We do not extend on the SimpleXMLElement because we will support other
+ * formats besides XML.
  */
 class mediamosa_connector_response {
 
@@ -40,7 +42,7 @@ class mediamosa_connector_response {
   }
 
   // ------------------------------------------------------------ Magic methods.
-   /**
+  /**
    * Magic function to support -> on object.
    *
    * @param $name
@@ -61,6 +63,21 @@ class mediamosa_connector_response {
    */
   public function __isset($name) {
     return isset($this->xml->$name);
+  }
+
+  /**
+   * Call method on $xml.
+   *
+   * @param string $name
+   *   The name of the method.
+   * @param array $arguments
+   *   The arguments.
+   */
+  public function __call($name, $arguments) {
+    if (method_exists($this->xml, $name)) {
+      // Call method on parent.
+      return call_user_func_array(array($this->xml, $name), $arguments);
+    }
   }
 
   // ---------------------------------------------------------------- Functions.
@@ -164,5 +181,34 @@ class mediamosa_connector_response {
       self::VERSION_BUILD => (int) $build,
       self::VERSION_INFO => $info,
     );
+  }
+
+  /**
+   * Get the result code from the request.
+   *
+   * @return integer
+   *   The request result ID or 0 when failed.
+   */
+  public function get_header_request_result_id() {
+    return isset($this->xml) ? (int) $this->xml->header->request_result_id : 0;
+  }
+
+  /**
+   * Get the result description.
+   *
+   * @return string
+   *   The request result description or '' when failed.
+   */
+  public function get_header_request_result_description() {
+    return isset($this->xml) ? (string) $this->xml->header->resultDescription : '';
+  }
+
+  /**
+   * Return the number of items total in result
+   *
+   * @return integer
+   */
+  public function get_header_item_count_total() {
+    return isset($this->xml) ? (int) $this->xml->header->item_count_total : 0;
   }
 }

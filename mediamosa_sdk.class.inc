@@ -9,6 +9,10 @@
  * The MediaMosa SDK class.
  */
 class mediamosa_sdk {
+  // ----------------------------------------------------------------- Settings.
+  // Character length ID of asset, mediafile etc.
+  const UUID_LENGTH = 24;
+
   // --------------------------------------------------------------- Errorcodes.
   // Error codes;
   const HTTP_OK = 200;

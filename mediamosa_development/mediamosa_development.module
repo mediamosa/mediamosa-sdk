@@ -35,7 +35,7 @@ function mediamosa_development_menu() {
 
   $items['admin/config/development/mediamosa/development'] = array(
     'title' => 'MediaMosa REST call developer.',
-    'description' => 'With this form you can execute REST calls directly.',
+    'description' => 'With this tool you can execute REST calls directly.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('mediamosa_development_rest_form'),
     'access callback' => '_mediamosa_development_user_access',

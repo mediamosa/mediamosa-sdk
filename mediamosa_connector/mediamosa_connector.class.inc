@@ -121,6 +121,8 @@ class mediamosa_connector {
   }
 
   /**
+   * Do the REST call request.
+   *
    * @param string $uri
    *  The REST uri.
    * @param array $options
@@ -151,6 +153,11 @@ class mediamosa_connector {
    *       may take. The default is 60 seconds. If a timeout occurs, the error
    *       code is set to the HTTP_REQUEST_TIMEOUT constant.
    *
+   * @return mediamosa_connector_response
+   *   The mediamosa connect response object or FALSE when fatal = FALSE. Will
+   *   throw exception with any error with fatal = TRUE.
+   *
+   * @throws Exception()
    */
   public function request($uri, array $options = array()) {
 
@@ -159,10 +166,12 @@ class mediamosa_connector {
 
     // Setup options.
     $options += array(
-      'fatal' => FALSE, // Default is not to react to problems with exceptions.
+      // Default is not to react to problems with exceptions.
+      'fatal' => FALSE,
       'user_id' => '',
       'group_id' => '',
-      'mediamosa_version' => '', // Latest.
+      // Use latest version.
+      'mediamosa_version' => '',
     );
 
     // Use user_id?
@@ -326,8 +335,10 @@ class mediamosa_connector {
   }
 
   /**
+   * Do the REST call request.
+   *
    * @param string $uri
-   *  The REST uri.
+   *   The REST uri.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
    *   - headers
@@ -346,6 +357,9 @@ class mediamosa_connector {
    *       A float representing the maximum number of seconds the function call
    *       may take. The default is 60 seconds. If a timeout occurs, the error
    *       code is set to the HTTP_REQUEST_TIMEOUT constant.
+   *
+   * @return mediamosa_connector_response
+   *   The mediamosa connect response object.
    */
   private function do_request($uri, array $options = array()) {
     // Merge the default options.
@@ -441,7 +455,8 @@ class mediamosa_connector {
     // Basic version.
     $version = '1.0.0';
     if (!empty($mediamosa_connector_response->xml->header->version)) {
-      $version = $mediamosa_connector_response->xml->header->version; // Position is the same on all MediaMosa versions.
+      // Position is the same on all MediaMosa versions.
+      $version = $mediamosa_connector_response->xml->header->version;
     }
 
     // Store an version array in the response object.
@@ -793,7 +808,7 @@ class mediamosa_connector {
    * @param string $error
    */
   public static function check_result($mediamosa_connector_response, $ok = NULL, $error = NULL) {
-    $result_id = $mediamosa_connector_response ? (int)$mediamosa_connector_response->xml->header->request_result_id : 0;
+    $result_id = $mediamosa_connector_response ? (int) $mediamosa_connector_response->xml->header->request_result_id : 0;
 
     if ($result_id != mediamosa_sdk::ERRORCODE_OKAY && $result_id != mediamosa_sdk::ERRORCODE_EMPTY_RESULT) {
       if (isset($error)) {

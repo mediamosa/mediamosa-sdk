@@ -1,7 +1,7 @@
 name = "MediaMosa Connector"
 description = "The MediaMosa connector enables Drupal modules to communicate with the MediaMosa REST interface."
 package = "MediaMosa - SDK"
-version = 7.x-3.4
+version = 7.x-3.5
 core = 7.x
 
 ; Dependencies (module names)
@@ -9,5 +9,6 @@ dependencies[] = mediamosa_sdk
 
 files[] = mediamosa_connector.class.inc
 files[] = mediamosa_connector.response.class.inc
+files[] = mediamosa_connector.response.asset.class.inc
 
 configure = admin/config/media/mediamosa/connector
