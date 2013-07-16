@@ -8,6 +8,7 @@ core = 7.x
 dependencies[] = mediamosa_sdk
 
 files[] = mediamosa_connector.class.inc
+files[] = mediamosa_connector.exception.class.inc
 files[] = mediamosa_connector.response.class.inc
 files[] = mediamosa_connector.response.asset.class.inc
 

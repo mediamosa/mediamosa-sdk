@@ -33,19 +33,16 @@ class mediamosa_connector {
   const ERROR_RESPONSE_RETURNED_ERROR = 3;
   const ERROR_UNKNOWN = 4;
 
-  // ------------------------------------------------------------------ Members.
+  const DRUPAL_PERMISSION_ADMIN = 'administer mediamosa connector settings';
+
+  // --------------------------------------------------------------------- Vars.
   // The URL to connect to.
   private $url;
 
   // The cookie for the MediaMosa session.
   private $cookie;
 
-  // The user to use.
-  private $user_id;
-
   // The group, optional.
-  private $group_id;
-  private $is_app_admin;
   private $log = array();
 
   // Stored username, password.
@@ -69,7 +66,7 @@ class mediamosa_connector {
     $this->cookie = !empty($cookies[$this->url][$this->username][$this->password]) ? $cookies[$this->url][$this->username][$this->password] : NULL;
   }
 
-  // --------------------------------------------------------- Public Functions.
+  // ------------------------------------------------------------------ Methods.
   /**
    * Return the last error.
    */
@@ -127,31 +124,31 @@ class mediamosa_connector {
    *  The REST uri.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
-   *   - user_id (mediamosa)
-   *       The user_id of the Mediamosa call. Default is empty.
-   *   - group_id (mediamosa)
-   *       The group_id of the Mediamosa call. Default is empty.
-   *   - fatal
-   *       Boolean value, TRUE makes the call throw an exception if the call
-   *       failed. That means, failed to call, failed to access the rest etc.
-   *       Empty results are not fatal. It will either return a response or
-   *       throw exception. Default is FALSE (call will returns response or
-   *       FALSE).
-   *   - headers
-   *       An array containing request headers to send as name/value pairs.
-   *   - method
-   *       A string containing the request method. Defaults to 'GET'.
-   *   - data
-   *       A string containing the request body.
-   *       Or
-   *       A array as name => value.
-   *   - max_redirects
-   *       An integer representing how many times a redirect may be followed.
-   *       Defaults to 1.
-   *   - timeout
-   *       A float representing the maximum number of seconds the function call
-   *       may take. The default is 60 seconds. If a timeout occurs, the error
-   *       code is set to the HTTP_REQUEST_TIMEOUT constant.
+   *   - user_id: (mediamosa user)
+   *     The user_id of the Mediamosa call. Default is empty.
+   *   - group_id: (mediamosa group)
+   *     The group_id of the Mediamosa call. Default is empty.
+   *   - fatal:
+   *     Boolean value, TRUE makes the call throw an exception if the call
+   *     failed. That means, failed to call, failed to access the rest etc.
+   *     Empty results are not fatal. It will either return a response or
+   *     throw exception. Default is FALSE (call will returns response or
+   *     FALSE).
+   *   - headers:
+   *     A array containing request headers to send as name/value pairs.
+   *   - method:
+   *     A string containing the request method. Defaults to 'GET'.
+   *   - data:
+   *     A string containing the request body.
+   *     Or
+   *     A array as name => value.
+   *   - max_redirects:
+   *     A integer representing how many times a redirect may be followed.
+   *     Defaults to 1.
+   *   - timeout:
+   *     A float representing the maximum number of seconds the function call
+   *     may take. The default is 60 seconds. If a timeout occurs, the error
+   *     code is set to the HTTP_REQUEST_TIMEOUT constant.
    *
    * @return mediamosa_connector_response
    *   The mediamosa connect response object or FALSE when fatal = FALSE. Will
@@ -202,12 +199,12 @@ class mediamosa_connector {
 
     try {
       if (empty($this->url)) {
-        throw new Exception(t('Unable to do request, connector not setup.'), self::ERROR_CONNECTOR_NOT_SETUP);
+        throw new mediamosa_connector_exception(self::ERROR_CONNECTOR_NOT_SETUP);
       }
 
       // If cookie not set, then login first.
       if (!isset($this->cookie) && !$this->do_login()) {
-        throw new Exception(t('Unable to do request, failed to login.'), self::ERROR_UNABLE_TO_LOGIN);
+        throw new mediamosa_connector_exception(self::ERROR_UNABLE_TO_LOGIN);
       }
 
       // Try the request.
@@ -236,15 +233,14 @@ class mediamosa_connector {
             $this->last_error_text = t('@description (@code)', array('@description' => $result_description, '@code' => $result_id));
           }
 
-          throw new Exception($this->last_error_text, self::ERROR_RESPONSE_RETURNED_ERROR);
+          throw new mediamosa_connector_exception(self::ERROR_RESPONSE_RETURNED_ERROR, $this->last_error_text);
         }
 
         return $response;
       }
     }
     catch (Exception $e) {
-      // Catch and log.
-      self::watchdog('mediamosa connector', $e->getMessage());
+      self::watchdog_exception('MediaMosa Connector', $e, $e->getMessage());
 
       $this->last_error = $e->getCode();
       $this->last_error_text = $e->getMessage();
@@ -252,7 +248,7 @@ class mediamosa_connector {
 
     // When fatal, throw exception.
     if ($fatal) {
-      throw new Exception($this->last_error_text, $this->last_error);
+      throw new mediamosa_connector_exception($this->last_error, $this->last_error_text);
     }
 
     return FALSE;
@@ -262,7 +258,38 @@ class mediamosa_connector {
    * Same as request() accept force to GET method.
    *
    * @param string $uri
+   *  The REST uri.
    * @param array $options
+   *   (optional) An array which can have one or more of following keys:
+   *   - user_id (mediamosa)
+   *       The user_id of the Mediamosa call. Default is empty.
+   *   - group_id (mediamosa)
+   *       The group_id of the Mediamosa call. Default is empty.
+   *   - fatal
+   *       Boolean value, TRUE makes the call throw an exception if the call
+   *       failed. That means, failed to call, failed to access the rest etc.
+   *       Empty results are not fatal. It will either return a response or
+   *       throw exception. Default is FALSE (call will returns response or
+   *       FALSE).
+   *   - headers
+   *       An array containing request headers to send as name/value pairs.
+   *   - data
+   *       A string containing the request body.
+   *       Or
+   *       A array as name => value.
+   *   - max_redirects
+   *       An integer representing how many times a redirect may be followed.
+   *       Defaults to 1.
+   *   - timeout
+   *       A float representing the maximum number of seconds the function call
+   *       may take. The default is 60 seconds. If a timeout occurs, the error
+   *       code is set to the HTTP_REQUEST_TIMEOUT constant.
+   *
+   * @return mediamosa_connector_response
+   *   The mediamosa connect response object or FALSE when fatal = FALSE. Will
+   *   throw exception with any error with fatal = TRUE.
+   *
+   * @see mediamosa_connect::request().
    */
   public function request_get($uri, array $options = array()) {
     $options['method'] = 'GET';
@@ -273,14 +300,45 @@ class mediamosa_connector {
    * Same as request() accept force to GET method.
    *
    * @param string $uri
+   *  The REST uri.
    * @param array $options
+   *   (optional) An array which can have one or more of following keys:
+   *   - user_id (mediamosa)
+   *       The user_id of the Mediamosa call. Default is empty.
+   *   - group_id (mediamosa)
+   *       The group_id of the Mediamosa call. Default is empty.
+   *   - fatal
+   *       Boolean value, TRUE makes the call throw an exception if the call
+   *       failed. That means, failed to call, failed to access the rest etc.
+   *       Empty results are not fatal. It will either return a response or
+   *       throw exception. Default is FALSE (call will returns response or
+   *       FALSE).
+   *   - headers
+   *       An array containing request headers to send as name/value pairs.
+   *   - data
+   *       A string containing the request body.
+   *       Or
+   *       A array as name => value.
+   *   - max_redirects
+   *       An integer representing how many times a redirect may be followed.
+   *       Defaults to 1.
+   *   - timeout
+   *       A float representing the maximum number of seconds the function call
+   *       may take. The default is 60 seconds. If a timeout occurs, the error
+   *       code is set to the HTTP_REQUEST_TIMEOUT constant.
+   *
+   * @return mediamosa_connector_response
+   *   The mediamosa connect response object or FALSE when fatal = FALSE. Will
+   *   throw exception with any error with fatal = TRUE.
+   *
+   * @see mediamosa_connect::request().
    */
   public function request_post($uri, array $options = array()) {
     $options['method'] = 'POST';
     return $this->request($uri, $options);
   }
 
-  // -------------------------------------------------------- Private Functions.
+  // ---------------------------------------------------------- Private methods.
   private function do_login() {
     if (empty($this->url)) {
       self::watchdog('mediamosa connector', 'Unable to do request, connector not setup.');
@@ -341,22 +399,22 @@ class mediamosa_connector {
    *   The REST uri.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
-   *   - headers
-   *       An array containing request headers to send as name/value pairs.
-   *   - method
-   *       A string containing the request method. Defaults to 'GET'.
-   *   - data
-   *       A string containing the request body.
-   *       Or
-   *       A array as name => value.
-   *       Note: The request body is only used on POST and PUT calls.
-   *   - max_redirects
-   *       An integer representing how many times a redirect may be followed.
-   *       Defaults to 1.
-   *   - timeout
-   *       A float representing the maximum number of seconds the function call
-   *       may take. The default is 60 seconds. If a timeout occurs, the error
-   *       code is set to the HTTP_REQUEST_TIMEOUT constant.
+   *   - headers:
+   *     An array containing request headers to send as name/value pairs.
+   *   - method:
+   *     A string containing the request method. Defaults to 'GET'.
+   *   - data:
+   *     A string containing the request body.
+   *     Or
+   *     A array as name => value.
+   *     Note: The request body is only used on POST and PUT calls.
+   *   - max_redirects:
+   *     A integer representing how many times a redirect may be followed.
+   *     Defaults to 1.
+   *   - timeout:
+   *     A float representing the maximum number of seconds the function call
+   *     may take. The default is 60 seconds. If a timeout occurs, the error
+   *     code is set to the HTTP_REQUEST_TIMEOUT constant.
    *
    * @return mediamosa_connector_response
    *   The mediamosa connect response object.
@@ -481,33 +539,46 @@ class mediamosa_connector {
    *   A string containing a fully qualified URI.
    * @param array $options
    *   (optional) An array that can have one or more of the following elements:
-   *   - headers: An array containing request headers to send as name/value pairs.
-   *   - method: A string containing the request method. Defaults to 'GET'.
-   *   - data: A string containing the request body, formatted as
+   *   - headers:
+   *     An array containing request headers to send as name/value pairs.
+   *   - method:
+   *     A string containing the request method. Defaults to 'GET'.
+   *   - data:
+   *     A string containing the request body, formatted as
    *     'param=value&param=value&...'. Defaults to NULL.
-   *   - max_redirects: An integer representing how many times a redirect
-   *     may be followed. Defaults to 3.
-   *   - timeout: A float representing the maximum number of seconds the function
-   *     call may take. The default is 30 seconds. If a timeout occurs, the error
+   *   - max_redirects:
+   *     An integer representing how many times a redirect may be followed.
+   *     Defaults to 3.
+   *   - timeout:
+   *     A float representing the maximum number of seconds the function call
+   *     may take. The default is 30 seconds. If a timeout occurs, the error
    *     code is set to the HTTP_REQUEST_TIMEOUT constant.
-   *   - context: A context resource created with stream_context_create().
+   *   - context:
+   *     A context resource created with stream_context_create().
    *
    * @return mediamosa_connector_response
    *   An object that can have one or more of the following components:
-   *   - request: A string containing the request body that was sent.
-   *   - code: An integer containing the response status code, or the error code
-   *     if an error occurred.
-   *   - protocol: The response protocol (e.g. HTTP/1.1 or HTTP/1.0).
-   *   - status_message: The status message from the response, if a response was
-   *     received.
-   *   - redirect_code: If redirected, an integer containing the initial response
-   *     status code.
-   *   - redirect_url: If redirected, a string containing the redirection location.
-   *   - error: If an error occurred, the error message. Otherwise not set.
-   *   - headers: An array containing the response headers as name/value pairs.
-   *     HTTP header names are case-insensitive (RFC 2616, section 4.2), so for
-   *     easy access the array keys are returned in lower case.
-   *   - data: A string containing the response body that was received.
+   *   - request:
+   *     A string containing the request body that was sent.
+   *   - code:
+   *     An integer containing the response status code, or the error code if an
+   *     error occurred.
+   *   - protocol:
+   *     The response protocol (e.g. HTTP/1.1 or HTTP/1.0).
+   *   - status_message:
+   *     The status message from the response, if a response was received.
+   *   - redirect_code:
+   *     If redirected, an integer containing the initial response status code.
+   *   - redirect_url:
+   *     If redirected, a string containing the redirection location.
+   *   - error:
+   *     If an error occurred, the error message. Otherwise not set.
+   *   - headers:
+   *     An array containing the response headers as name/value pairs. HTTP
+   *     header names are case-insensitive (RFC 2616, section 4.2), so for easy
+   *     access the array keys are returned in lower case.
+   *   - data:
+   *     A string containing the response body that was received.
    */
   private function http_request($url, array $options = array()) {
     // Create our response object.
@@ -604,10 +675,10 @@ class mediamosa_connector {
       'User-Agent' => 'Drupal (+http://drupal.org/)',
     );
 
-    // Only add Content-Length if we actually have any content or if it is a POST
-    // or PUT request. Some non-standard servers get confused by Content-Length in
-    // at least HEAD/GET requests, and Squid always requires Content-Length in
-    // POST/PUT requests.
+    // Only add Content-Length if we actually have any content or if it is a
+    // POST or PUT request. Some non-standard servers get confused by
+    // Content-Length in at least HEAD/GET requests, and Squid always requires
+    // Content-Length in POST/PUT requests.
     $content_length = strlen($options['data']);
     if ($content_length > 0 || $options['method'] == 'POST' || $options['method'] == 'PUT') {
       $options['headers']['Content-Length'] = $content_length;
@@ -630,6 +701,7 @@ class mediamosa_connector {
         case '6.x':
           global $db_prefix;
 
+          $matches = array();
           if (isset($db_prefix) && is_string($db_prefix) && preg_match('/^simpletest\d+$/', $db_prefix, $matches)) {
             $options['headers']['User-Agent'] = 'User-Agent: ' . $matches[0];
           }
@@ -827,12 +899,16 @@ class mediamosa_connector {
   }
 
   /**
-   * Simple function to correctly convert simplexml to array.
+   * Helper function to correctly convert simplexml to array.
    *
    * @deprecated: Stop using this function, as it will be removed in the future.
    *              Instead use the SimpleXML object directly.
    *
-   * @param object $xml
+   * @param mediamosa_connector_response $mediamosa_connector_response
+   *   The response XML to convert.
+   *
+   * @return string|array
+   *   The string version or array of the xml.
    */
   private static function _simplexml2array($xml) {
     if (is_object($xml) && get_class($xml) == 'mediamosa_connector_response') {
@@ -841,18 +917,12 @@ class mediamosa_connector {
 
     $xml_copy = $xml;
     if (is_object($xml) && get_class($xml) == 'SimpleXMLElement') {
-      foreach ($xml->attributes() as $key => $value) {
-        if ($value) {
-          $attributes[$key] = (string)$value;
-        }
-      }
-
       $xml = get_object_vars($xml);
     }
 
     if (is_array($xml)) {
       if (empty($xml)) {
-        return (string)$xml_copy;
+        return (string) $xml_copy;
       }
 
       $result = array();
@@ -863,7 +933,7 @@ class mediamosa_connector {
       return $result;
     }
 
-    return (string)$xml;
+    return (string) $xml;
   }
 
   /**
@@ -874,7 +944,11 @@ class mediamosa_connector {
    * @deprecated: Stop using this function, as it will be removed in the future.
    *              Instead use the SimpleXML object directly.
    *
-   * @param object $xml
+   * @param mediamosa_connector_response $mediamosa_connector_response
+   *   The response XML to convert.
+   *
+   * @return array
+   *   The converted array from xml.
    */
   public static function responsexml2array($xml) {
     if (!$xml) {
@@ -912,18 +986,49 @@ class mediamosa_connector {
    * response as array. Will return FALSE when supplied with FALSE.
    *
    * @deprecated: Stop using this function, as it will be removed in the future.
-   *              Instead use the SimpleXML object directly.
+   *              Instead use the SimpleXMLElement object directly.
    *
-   * @param object $mediamosa_connector_response
+   * @param mediamosa_connector_response $mediamosa_connector_response
+   *   The response XML to convert.
+   *
+   * @return array
+   *   The converted array from xml.
    */
   public static function response2array($mediamosa_connector_response) {
     return $mediamosa_connector_response ? self::responsexml2array($mediamosa_connector_response->xml) : FALSE;
   }
 
   /**
-   * Wrapper around watchdog, minor diff. with drupal 6 version.
+   * Wrapper around watchdog, minor difference with drupal 6 version.
+   *
+   * @param string $type
+   *   The category to which this message belongs. Can be any string, but the
+   *   general practice is to use the name of the module calling watchdog().
+   * @param string $message
+   *   The message to store in the log. Keep $message translatable
+   *   by not concatenating dynamic values into it! Variables in the
+   *   message should be added by using placeholder strings alongside
+   *   the variables argument to declare the value of the placeholders.
+   *   See t() for documentation on how $message and $variables interact.
+   * @param array $variables
+   *   Array of variables to replace in the message on display or
+   *   NULL if message is already translated or not possible to
+   *   translate.
+   * @param string $severity
+   *   The severity of the message; one of the following values as defined in
+   *   @link http://www.faqs.org/rfcs/rfc3164.html RFC 3164: @endlink
+   *   - WATCHDOG_EMERGENCY: Emergency, system is unusable.
+   *   - WATCHDOG_ALERT: Alert, action must be taken immediately.
+   *   - WATCHDOG_CRITICAL: Critical conditions.
+   *   - WATCHDOG_ERROR: Error conditions.
+   *   - WATCHDOG_WARNING: Warning conditions.
+   *   - WATCHDOG_NOTICE: (default) Normal but significant conditions.
+   *   - WATCHDOG_INFO: Informational messages.
+   *   - WATCHDOG_DEBUG: Debug-level messages.
+   * @param string $link
+   *   A link to associate with the message.
    */
-  public function watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
+  public static function watchdog($type, $message, array $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
     if (DRUPAL_CORE_COMPATIBILITY == '6.x') {
       $type = substr($type, 0, 16);// Type is max len 16 chars.
     }
@@ -932,26 +1037,89 @@ class mediamosa_connector {
   }
 
   /**
+   * Logs an exception.
+   *
+   * This is a wrapper function for watchdog() which automatically decodes an
+   * exception.
+   *
+   * @param string $type
+   *   The category to which this message belongs.
+   * @param Exception $exception
+   *   The exception that is going to be logged.
+   * @param string $message
+   *   The message to store in the log. If empty, a text that contains all useful
+   *   information about the passed-in exception is used.
+   * @param array $variables
+   *   Array of variables to replace in the message on display. Defaults to the
+   *   return value of drupal_decode_exception().
+   * @param string $severity
+   *   The severity of the message, as per RFC 3164.
+   * @param string $link
+   *   A link to associate with the message.
+   */
+  public static function watchdog_exception($type, Exception $exception, $message = NULL, array $variables = array(), $severity = WATCHDOG_ERROR, $link = NULL) {
+    // D6 does not have watchdog_exception.
+    if (DRUPAL_CORE_COMPATIBILITY == '6.x') {
+      self::watchdog($type, $message, $variables, $severity, $link);
+    }
+    else {
+      watchdog_exception($type, $exception, $message, $variables, $severity, $link);
+    }
+  }
+
+  /**
    * Variable_get wrapper for connection dependent variables.
+   *
+   * @todo:
+   * This function should return session based variables, only available during
+   * this session.
+   *
+   * @param string $name
+   *   The name of the variable to return.
+   * @param string $default
+   *   The default value to use if this variable has never been set.
+   *
+   * @return
+   *   The value of the variable. Unserialization is taken care of as necessary.
    */
   public static function variable_get($name, $default = NULL) {
-    // TODO
     return variable_get($name, $default);
   }
 
   /**
    * Variable_set wrapper for connection dependent variables.
+   *
+   * @todo:
+   * This function should set session based variables, only available during
+   * this session.
+   *
+   * @param string $name
+   *   The name of the variable to set.
+   * @param string $value
+   *   The value to set. This can be any PHP data type; these functions take care
+   *   of serialization as necessary.
    */
   public static function variable_set($name, $value) {
-    // TODO
     variable_set($name, $value);
   }
 
   /**
    * Variable_del wrapper for connection dependent variables.
+   *
+   * @param string $name
+   *   The name of the variable to undefine.
    */
-  public function variable_del($name) {
-    // TODO
+  public static function variable_del($name) {
     variable_del($name);
+  }
+
+  /**
+   * Get the uri to the settings page.
+   *
+   * @return string
+   *   The uri to use
+   */
+  public static function get_settings_form_uri() {
+    return url('admin/config/media/mediamosa/connector');
   }
 }
