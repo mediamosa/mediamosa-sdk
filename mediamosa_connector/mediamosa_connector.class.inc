@@ -356,7 +356,7 @@ class mediamosa_connector {
       return FALSE;
     }
 
-    if ($response->xml->header->request_result_id == mediamosa_sdk::HTTP_NOT_FOUND) {
+    if ($response->get_header_request_result_id() == mediamosa_sdk::HTTP_NOT_FOUND) {
       drupal_set_message(t('Enable the Application Authentication module, unable to login.'), 'error');
       return FALSE;
     }
@@ -366,14 +366,22 @@ class mediamosa_connector {
       return FALSE;
     }
 
-    // Parse the response.
-    // FIXME: We only store the 1st cookie here(!).
-    list($this->cookie) = explode(';', $response->headers['set-cookie']);
+    // Store the session cookie.
+    $this->cookie = null;
+    $cookies = explode(';', $response->headers['set-cookie']);
+    foreach ($cookies as $cookie) {
+      $cookie = trim($cookie);
+      if (drupal_substr($cookie, 0, 4) === 'SESS' || drupal_substr($cookie, 0, 5) === 'SSESS') {
+        $this->cookie = $cookie;
+      }
+    }
 
     // Store the cookie for later usage.
     $cookies = variable_get('mediamosa_connector_cookies', array());
-    $cookies[$this->url][$this->username][$this->password] = $this->cookie;
-    variable_set('mediamosa_connector_cookies', $cookies);
+    if (empty($cookies[$this->url][$this->username][$this->password]) || $cookies[$this->url][$this->username][$this->password] !== $this->cookie) {
+      $cookies[$this->url][$this->username][$this->password] = $this->cookie;
+      variable_set('mediamosa_connector_cookies', $cookies);
+    }
 
     // Set DBUS data.
     $dbus_data = explode(' ', $response->xml->items->item->dbus);
@@ -510,16 +518,6 @@ class mediamosa_connector {
       return FALSE;
     }
 
-    // Basic version.
-    $version = '1.0.0';
-    if (!empty($mediamosa_connector_response->xml->header->version)) {
-      // Position is the same on all MediaMosa versions.
-      $version = $mediamosa_connector_response->xml->header->version;
-    }
-
-    // Store an version array in the response object.
-    $mediamosa_connector_response->mediamosa_version = mediamosa_sdk::parse_version($version);
-
     // Return result.
     return $mediamosa_connector_response;
   }
@@ -527,7 +525,7 @@ class mediamosa_connector {
   /**
    * Perform an HTTP request.
    *
-   * Original code from Drupal 7.2. See orignal copyright http://drupal.org.
+   * Original code from Drupal 7.2. See original copyright http://drupal.org.
    *
    * Changes to code to make it compatible with Drupal 6 and 7 simpletest. Also
    * will work outside Drupal.
@@ -875,16 +873,24 @@ class mediamosa_connector {
   /**
    * Check the result.
    *
-   * @param xml_object $mediamosa_connector_response
+   * @param mediamosa_connector_response $mediamosa_connector_response
+   *   The response object.
    * @param string $ok
+   *   The message to set for drupal when response is success.
    * @param string $error
+   *   The message to set for drupal when response fails.
+   *   May contain following param fields in text (uses translate);
+   *   - %code
+   *     The mediamosa result code (see mediamosa_sdk).
+   *   - %message
+   *     The result description.
    */
   public static function check_result($mediamosa_connector_response, $ok = NULL, $error = NULL) {
-    $result_id = $mediamosa_connector_response ? (int) $mediamosa_connector_response->xml->header->request_result_id : 0;
+    $result_id = $mediamosa_connector_response ? $mediamosa_connector_response->get_header_request_result_id() : 0;
 
     if ($result_id != mediamosa_sdk::ERRORCODE_OKAY && $result_id != mediamosa_sdk::ERRORCODE_EMPTY_RESULT) {
       if (isset($error)) {
-        $error = t($error, array('%code' => $result_id, '%message' => $mediamosa_connector_response->xml->header->request_result_description));
+        $error = t($error, array('%code' => $result_id, '%message' => $mediamosa_connector_response->get_header_request_result_description()));
         drupal_set_message($error, 'error');
       }
 
