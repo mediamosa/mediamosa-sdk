@@ -45,10 +45,10 @@ class mediamosa_connector_response {
   /**
    * Magic function to support -> on object.
    *
-   * @param $name
+   * @param string $name
+   *   The name of the variable to get from response.
    */
   public function __get($name) {
-    assert($name != 'xml');
     if (isset($this->xml->$name)) {
       return $this->xml->$name;
     }
@@ -59,7 +59,8 @@ class mediamosa_connector_response {
   /**
    * Magic function to support -> on object.
    *
-   * @param $name
+   * @param string $name
+   *   The name of the variable to test.
    */
   public function __isset($name) {
     return isset($this->xml->$name);
