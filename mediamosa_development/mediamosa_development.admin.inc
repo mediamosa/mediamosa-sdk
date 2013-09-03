@@ -250,9 +250,6 @@ function _mediamosa_development_get_var_setup($uri, $method) {
   // Get response.
   $response = mediamosa_connector::response2array($mediamosa_connector->request_get('rest', array('mediamosa_version' => '2.0', 'data' => array('limit' => 0))));
 
-  // Build the var_setup.
-  $var_setup = array();
-
   if ($response && !empty($response['items']['item'])) {
 
     $response_item = FALSE;
