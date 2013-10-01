@@ -24,6 +24,9 @@ The files
   - mediamosa_connector.response.class.inc
     This object is return each time you execute a REST call.
 
+  - mediamosa_connector.response.asset.class.inc
+    This object can be used for the /asset REST call. @see MediaMosaCkConnectorWrapper::get_asset().
+
 - mediamosa_development/* (6.x / 7.x)
   The mediamosa_development Drupal module allows developers to test and run REST calls directly using a form.
 
@@ -36,7 +39,7 @@ Usage
 $my_mediamosa_connector = new mediamosa_connector('testapp', 'password', 'http://app1.mediamosa.local');
 
 try {
-  $response = $my_mediamosa_connector->request('version', array('fatal' => TRUE)); 
+  $response = $my_mediamosa_connector->request('version', array('fatal' => TRUE));
 }
 catch (Exception $e) {
   // .. something went wrong.

@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-MediaMosa SDK 7.x-3.5
+MediaMosa SDK 7.x-3.5-RC1
 ---------------------
 - Extended response object as it would allow using it as an SimpleXMLElement
   object. All SimpleXMLElement functions are available to class.
