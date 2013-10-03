@@ -211,7 +211,7 @@ class mediamosa_connector {
       $response = $this->do_request($uri, $options);
 
       // If response failed, then try to login.
-      if (!empty($response) && !empty($response->xml) && in_array((int) $response->xml->header->request_result_id, array(mediamosa_sdk::ERRORCODE_ACCESS_DENIED, mediamosa_sdk::ERRORCODE_NOT_AUTHORIZED))) {
+      if (!empty($response) && !empty($response->xml) && in_array((int) $response->xml->header->request_result_id, array(mediamosa_sdk::ERRORCODE_ACCESS_DENIED))) {
 
         // Not authorized? Try to login.
         if (self::do_login()) {
