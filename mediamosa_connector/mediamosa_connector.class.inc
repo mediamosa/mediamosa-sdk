@@ -30,7 +30,8 @@ class mediamosa_connector {
   const ERROR_NONE = 0;
   const ERROR_CONNECTOR_NOT_SETUP = 1;
   const ERROR_UNABLE_TO_LOGIN = 2;
-  const ERROR_RESPONSE_RETURNED_ERROR = 3;
+  // @deprecrated: the mm errorcode is thrown now.
+  // const ERROR_RESPONSE_RETURNED_ERROR = 3;
   const ERROR_UNKNOWN = 4;
 
   const DRUPAL_PERMISSION_ADMIN = 'administer mediamosa connector settings';
@@ -233,7 +234,7 @@ class mediamosa_connector {
             $this->last_error_text = t('@description (@code)', array('@description' => $result_description, '@code' => $result_id));
           }
 
-          throw new mediamosa_connector_exception(self::ERROR_RESPONSE_RETURNED_ERROR, $this->last_error_text);
+          throw new mediamosa_connector_exception($result_id, $this->last_error_text);
         }
 
         return $response;
