@@ -423,7 +423,8 @@ class mediamosa_sdk {
   /**
    * Returns the database stamp as a viewable date.
    *
-   * @param string $datestamp (YYYY-MM-DD 00:00:00)
+   * @param string $datestamp
+   *   Format datetime; YYYY-MM-DD 00:00:00.
    */
   public static function datestamp2date($datestamp, $type = 'medium', $format = '', $timezone = NULL, $langcode = NULL) {
     return format_date(strtotime($datestamp), $type, $format, $timezone, $langcode);
