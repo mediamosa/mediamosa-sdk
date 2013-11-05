@@ -508,4 +508,18 @@ class mediamosa_sdk {
 
     return $tag . '/';
   }
+
+  /**
+   * Escape values for CQL.
+   *
+   * @param string $value
+   *   The value to escape.
+   *
+   * @return string
+   *   The escaped string.
+   */
+  public static function escape_cql($value) {
+    return addslashes($value);
+  }
+
 }
