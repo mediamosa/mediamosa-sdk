@@ -1,15 +1,9 @@
-CHANGELOG
-=========
-
-MediaMosa SDK 7.x-3.5-RC3
--------------------------
+MediaMosa SDK 7.x-3.5 (build 23)
+--------------------------------
 - Connector request exceptions now contain the MM error code instead of unusable
   connector codes.
 - Fixed: Not Authorized event no longer triggers a re-login.
 - Added escape function for CQL.
-
-MediaMosa SDK 7.x-3.5-RC1
----------------------
 - Extended response object as it would allow using it as an SimpleXMLElement
   object. All SimpleXMLElement functions are available to class.
 
