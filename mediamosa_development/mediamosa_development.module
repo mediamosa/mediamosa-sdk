@@ -67,11 +67,11 @@ function mediamosa_development_menu() {
 
   // Include in the mediamosa menus too.
   if (class_exists('mediamosa_permission')) {
-    $items['admin/mediamosa/config/development']['access arguments'] = 'mediamosa|access|config|development';
-    $items['admin/mediamosa/config/development']['access callback'] = '_mediamosa_development_user_access';
+    $items['admin/mediamosa/tools/development']['access arguments'] = 'mediamosa|access|config|development';
+    $items['admin/mediamosa/tools/development']['access callback'] = '_mediamosa_development_user_access';
 
-    $items['admin/mediamosa/config/development'] = $items['admin/config/development/mediamosa/development'];
-    $items['admin/mediamosa/config/development/list'] = $items['admin/config/development/mediamosa/development/list'];
+    $items['admin/mediamosa/tools/development'] = $items['admin/config/development/mediamosa/development'];
+    $items['admin/mediamosa/tools/development/list'] = $items['admin/config/development/mediamosa/development/list'];
   }
 
   return $items;
