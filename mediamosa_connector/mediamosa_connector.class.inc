@@ -38,7 +38,7 @@ class mediamosa_connector {
 
   // --------------------------------------------------------------------- Vars.
   // The URL to connect to.
-  private $url;
+  protected $url;
 
   // The cookie for the MediaMosa session.
   private $cookie;
@@ -47,8 +47,8 @@ class mediamosa_connector {
   private $log = array();
 
   // Stored username, password.
-  private $username;
-  private $password;
+  protected $username;
+  protected $password;
 
   // Contains possible last error code.
   private $last_error = self::ERROR_NONE;
