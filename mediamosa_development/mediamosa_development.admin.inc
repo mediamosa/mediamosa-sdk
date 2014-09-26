@@ -92,7 +92,7 @@ function _ajax_execute_rest_call() {
       $uri_vars[] = drupal_substr($uri_var, 1);
 
       // To rebuild.
-      $uri_rebuild[] = $form_state['input']['_' . drupal_substr($uri_var, 1)];
+      $uri_rebuild[] = rawurlencode($form_state['input']['_' . drupal_substr($uri_var, 1)]);
     }
     else {
       $uri_rebuild[] = $uri_var;
