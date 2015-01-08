@@ -1,4 +1,4 @@
-MediaMosa SDK 7.x-3.5 (build 25)
+MediaMosa SDK 7.x-3.6 (build 26)
 --------------------------------
 - Connector request exceptions now contain the MM error code instead of unusable
   connector codes.
@@ -8,7 +8,7 @@ MediaMosa SDK 7.x-3.5 (build 25)
   object. All SimpleXMLElement functions are available to class.
 - Moved development tool under tools section.
 - Added timezone setting for MediaMosa connector.
-- Made connector settings class overrideable.
+- Made connector settings class overridable.
 
 
 MediaMosa SDK 7.x-3.1
