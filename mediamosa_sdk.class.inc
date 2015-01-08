@@ -75,6 +75,8 @@ class mediamosa_sdk {
   const ERRORCODE_APP_DISABLED = 722;
   const ERRORCODE_MEDIAFILE_IS_NOT_ORIGINAL = 723;
   const ERRORCODE_INVALID_MEDIAFILE_RELATION = 724;
+  const ERRORCODE_METADATA_MIN_OCCURRENCE_FAILURE = 725;
+  const ERRORCODE_METADATA_MAX_OCCURRENCE_FAILURE = 726;
 
   const ERRORCODE_UNKNOWN_JOB = 800;
 
@@ -521,5 +523,4 @@ class mediamosa_sdk {
   public static function escape_cql($value) {
     return addslashes($value);
   }
-
 }
