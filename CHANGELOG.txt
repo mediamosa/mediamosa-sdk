@@ -1,4 +1,4 @@
-MediaMosa SDK 7.x-3.6 (build 26)
+MediaMosa SDK 7.x-3.6 (build 27)
 --------------------------------
 - Connector request exceptions now contain the MM error code instead of unusable
   connector codes.
