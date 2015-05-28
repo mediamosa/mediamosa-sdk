@@ -208,6 +208,10 @@ class mediamosa_connector {
         throw new mediamosa_connector_exception(self::ERROR_UNABLE_TO_LOGIN);
       }
 
+      if (!isset($this->cookie)) {
+        throw new mediamosa_connector_exception(self::ERROR_UNABLE_TO_LOGIN);
+      }
+
       // Try the request.
       $response = $this->do_request($uri, $options);
 
@@ -374,6 +378,7 @@ class mediamosa_connector {
       $cookie = trim($cookie);
       if (drupal_substr($cookie, 0, 4) === 'SESS' || drupal_substr($cookie, 0, 5) === 'SSESS') {
         $this->cookie = $cookie;
+        break;
       }
     }
 
@@ -679,7 +684,7 @@ class mediamosa_connector {
     // Content-Length in at least HEAD/GET requests, and Squid always requires
     // Content-Length in POST/PUT requests.
     $content_length = strlen($options['data']);
-    if ($content_length > 0 || $options['method'] == 'POST' || $options['method'] == 'PUT') {
+    if ($content_length > 0 || $options['method'] === 'POST' || $options['method'] === 'PUT') {
       $options['headers']['Content-Length'] = $content_length;
     }
 
@@ -714,7 +719,7 @@ class mediamosa_connector {
           break;
 
         default:
-          assert(0); // Unsupported Drupal version.
+          assert(0);
           break;
       }
     }
@@ -918,12 +923,12 @@ class mediamosa_connector {
    *   The string version or array of the xml.
    */
   private static function _simplexml2array($xml) {
-    if (is_object($xml) && get_class($xml) == 'mediamosa_connector_response') {
+    if (is_object($xml) && get_class($xml) === 'mediamosa_connector_response') {
       return self::_simplexml2array($xml->xml);
     }
 
     $xml_copy = $xml;
-    if (is_object($xml) && get_class($xml) == 'SimpleXMLElement') {
+    if (is_object($xml) && get_class($xml) === 'SimpleXMLElement') {
       $xml = get_object_vars($xml);
     }
 
