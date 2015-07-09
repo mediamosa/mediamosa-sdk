@@ -226,6 +226,9 @@ class mediamosa_connector {
 
       // Check the final response.
       if (!empty($response) && !empty($response->xml) && !empty($response->xml->header)) {
+
+        $this->version((string) $response->xml->header->version);
+
         $result_id = (int) $response->xml->header->request_result_id;
         $result_description = (string) $response->xml->header->request_result_description;
 
@@ -1133,5 +1136,33 @@ class mediamosa_connector {
    */
   public static function get_settings_form_uri() {
     return url('admin/config/media/mediamosa/connector');
+  }
+
+  /**
+   * Get and Set the MediaMosa version.
+   *
+   * @param string $version
+   *   the version to set, give NULL to get the current version.
+   *
+   * @return string
+   *   Returns the current stored version.
+   */
+  public function version($version = NULL) {
+    $static_version = &drupal_static(__FUNCTION__);
+
+    if ($version == NULL) {
+      if (!isset($static_version)) {
+        return variable_get('mediamosa_connector_version', NULL);
+      }
+      return $static_version;
+    }
+
+    if (($version != '') and ($static_version != $version)) {
+      $static_version = $version;
+      if (variable_get('mediamosa_connector_version') != $static_version) {
+        variable_set('mediamosa_connector_version', $static_version);
+      }
+    }
+    return $static_version;
   }
 }
