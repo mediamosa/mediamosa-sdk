@@ -31,7 +31,7 @@ class mediamosa_connector_exception extends Exception {
           break;
 
         case mediamosa_connector::ERROR_UNABLE_TO_LOGIN:
-          $message = t('Unable to do request, failed to login.');
+          $message = t('Unable to do request, failed to login. Check connector settings.');
           break;
 
         default:
