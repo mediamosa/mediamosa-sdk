@@ -1,4 +1,4 @@
-MediaMosa SDK 7.x-3.6 (build 27)
+MediaMosa SDK 7.x-3.6 (build 28)
 --------------------------------
 - Connector request exceptions now contain the MM error code instead of unusable
   connector codes.
@@ -9,6 +9,8 @@ MediaMosa SDK 7.x-3.6 (build 27)
 - Moved development tool under tools section.
 - Added timezone setting for MediaMosa connector.
 - Made connector settings class overridable.
+- Added additional text when connector can not connect.
+- Store the backend version in a variable.
 
 
 MediaMosa SDK 7.x-3.1
