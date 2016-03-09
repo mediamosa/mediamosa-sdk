@@ -3,7 +3,7 @@ MediaMosa Software Development Kit
 
 The MediaMosa SDK has been developed for Drupal 6 and Drupal 7. These PHP API tools will enable developers to connect front-end applications (like websites) to the back-end (MediaMosa).
 
-There are slight differences between Drupal 6 and Drupal 7 versions of the SDK. Although the *.class.inc are the same on all version.
+There are slight differences between Drupal 6 and Drupal 7 versions of the SDK. Although the *.class.inc are the same on both versions.
 
 
 The files
