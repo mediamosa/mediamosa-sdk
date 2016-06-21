@@ -786,9 +786,8 @@ class mediamosa_connector {
       list($name, $value) = explode(':', $line, 2);
       $name = strtolower($name);
       if (isset($mediamosa_connector_response->headers[$name]) && $name == 'set-cookie') {
-        // RFC 2109: the Set-Cookie response header comprises the token Set-
-        // Cookie:, followed by a comma-separated list of one or more cookies.
-        $mediamosa_connector_response->headers[$name] .= ',' . trim($value);
+        // Using ';' as delimiter.
+        $mediamosa_connector_response->headers[$name] .= ';' . trim($value);
       }
       else {
         $mediamosa_connector_response->headers[$name] = trim($value);
@@ -893,6 +892,9 @@ class mediamosa_connector {
    *     The mediamosa result code (see mediamosa_sdk).
    *   - %message
    *     The result description.
+   *
+   * @return bool
+   *   Either TRUE for success, or FALSE for failure.
    */
   public static function check_result($mediamosa_connector_response, $ok = NULL, $error = NULL) {
     $result_id = $mediamosa_connector_response ? $mediamosa_connector_response->get_header_request_result_id() : 0;
