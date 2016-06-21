@@ -1,4 +1,4 @@
-MediaMosa SDK 7.x-3.6 (build 29)
+MediaMosa SDK 7.x-3.6 (build 30)
 --------------------------------
 - Connector request exceptions now contain the MM error code instead of unusable
   connector codes.
@@ -12,6 +12,7 @@ MediaMosa SDK 7.x-3.6 (build 29)
 - Added additional text when connector can not connect.
 - Store the backend version in a variable.
 - Minor textual changes.
+- No longer using delimiter ',' with same cookies, now using ';' instead.
 
 
 MediaMosa SDK 7.x-3.1
