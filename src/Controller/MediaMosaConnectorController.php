@@ -48,7 +48,7 @@ class MediaMosaConnectorController extends ControllerBase {
     $connector = $this->service->getConnector($mediamosa_connector);
 
     if (!($connector instanceof MediaMosaConnectorInterface)) {
-      drupal_set_message($this->t('Usable to find and load connector %name.', array('%name' => $mediamosa_connector)), 'error');
+      drupal_set_message($this->t('Unable to find and load connector %name.', array('%name' => $mediamosa_connector)), 'error');
     }
     else {
       if ($connector->verify()) {

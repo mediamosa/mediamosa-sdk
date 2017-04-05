@@ -105,4 +105,4 @@ Do not assume string is returned on data either, its good practise to cast value
 $asset_id = (string) $items[0]->item->asset_id
 ```
 
-The convertor function for XML to array has not been ported. This was already deprecated in Drupal 7 version.
+The converter function for XML to array has not been ported. This was already deprecated with Drupal 7 version.
