@@ -1,5 +1,18 @@
 <?php
+
 /**
  * @file
- * MediaMosa Sofware Development Kit.
+ * The MediaMosa Software development kit for clients.
  */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mediamosa_sdk_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'mediamosa_sdk.connector_add':
+      return '<p>' . t("This web page allows administrators to add new MediaMosa connectors.") . '</p>';
+  }
+}

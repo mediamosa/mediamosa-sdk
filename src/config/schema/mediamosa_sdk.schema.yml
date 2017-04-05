@@ -1,0 +1,22 @@
+mediamosa_sdk.mediamosa_connector.*:
+  type: config_entity
+  label: 'MediaMosa connector'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    shared_key:
+      type: string
+      label: 'Client application shared key'
+    uri:
+      type: string
+      label: 'MediaMosa client application REST URL'
+    verbose:
+      type: boolean
+      label: 'Verbose connection information'
+    cookie:
+      type: string
+      label: 'The session cookie'

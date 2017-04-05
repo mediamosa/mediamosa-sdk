@@ -1,20 +1,22 @@
 <?php
-/**
- * @file
- * MediaMosa Library.
- */
+
+namespace Drupal\mediamosa_sdk;
 
 /**
- * @file
- * The MediaMosa SDK class.
+ * MediaMosa SDK class.
+ *
+ * The basic SDK class containing the error codes and other shared functions
+ * between MediaMosa core and clients. These functions can also be called
+ * through the MediaMosaSDKService.
+ *
+ * Class updated up to MediaMosa v3.6.2.
  */
-class mediamosa_sdk {
+class MediaMosaSDK {
   // ----------------------------------------------------------------- Settings.
   // Character length ID of asset, mediafile etc.
   const UUID_LENGTH = 24;
 
-  // --------------------------------------------------------------- Errorcodes.
-  // Error codes;
+  // -------------------------------------------------------------- Error codes.
   const HTTP_OK = 200;
   const HTTP_CREATED = 201;
   const HTTP_NO_CONTENT = 204;
@@ -27,7 +29,6 @@ class mediamosa_sdk {
   const HTTP_INTERNAL_SERVER_ERROR = 500;
   const HTTP_NOT_IMPLEMENTED = 501;
 
-  // All Ok.
   const ERRORCODE_OKAY = 601;
   const ERRORCODE_TIME_RESTRICTION_START = 602;
   const ERRORCODE_TIME_RESTRICTION_END = 603;
@@ -77,6 +78,8 @@ class mediamosa_sdk {
   const ERRORCODE_INVALID_MEDIAFILE_RELATION = 724;
   const ERRORCODE_METADATA_MIN_OCCURRENCE_FAILURE = 725;
   const ERRORCODE_METADATA_MAX_OCCURRENCE_FAILURE = 726;
+  const ERRORCODE_ASSET_CREATE_FAILURE = 727;
+  const ERRORCODE_METADATA_MULTIPLE_APPS = 728;
 
   const ERRORCODE_UNKNOWN_JOB = 800;
 
@@ -218,7 +221,7 @@ class mediamosa_sdk {
 
   const ERRORCODE_INVALID_REST_CALL = 3000;
 
-  // Storage related errorcodes.
+  // Storage related error codes.
   const ERRORCODE_STORAGE_CLASS_NOT_FOUND = 4000;
   const ERRORCODE_STORAGE_PROFILE_NOT_FOUND = 4001;
   const ERRORCODE_STORAGE_STREAMWRAPPER_NOT_FOUND = 4002;
@@ -235,29 +238,41 @@ class mediamosa_sdk {
   const TYPE_INT                         = 'INT';
   const TYPE_UINT                        = 'UINT';
   const TYPE_FLOAT                       = 'FLOAT';
-  const TYPE_SERIAL                      = 'SERIAL'; // Like autoinc. in db
-  const TYPE_ALPHA                       = 'ALPHA'; // [A-Za-z]
-  const TYPE_PRINTABLE                   = 'STRING_PRINTABLE';// only printable chars
+  // Like autoincrement keys in db
+  const TYPE_SERIAL                      = 'SERIAL';
+  // [A-Za-z]
+  const TYPE_ALPHA                       = 'ALPHA';
+  const TYPE_PRINTABLE                   = 'STRING_PRINTABLE';
 
-  const TYPE_ALPHA_NUM                   = 'ALPHA_NUM'; // [A-Za-z0-9]
-  const TYPE_ALPHA_NUM_UNDERSCORE        = 'ALPHA_NUM_UNDERSCORE'; // [A-Za-z0-9_]
-  const TYPE_ALPHA_NUM_UNDERSCORE_TAG    = 'ALPHA_NUM_UNDERSCORE_TAG'; // same as ALPHA_NUM_UNDERSCORE, but does not allow the first char to be non alpha.
+  // [A-Za-z0-9]
+  const TYPE_ALPHA_NUM                   = 'ALPHA_NUM';
+  // [A-Za-z0-9_]
+  const TYPE_ALPHA_NUM_UNDERSCORE        = 'ALPHA_NUM_UNDERSCORE';
+  // same as ALPHA_NUM_UNDERSCORE, but does not allow the first char to be non alpha.
+  const TYPE_ALPHA_NUM_UNDERSCORE_TAG    = 'ALPHA_NUM_UNDERSCORE_TAG';
   const TYPE_RESPONSE_TYPE               = 'RESPONSE_TYPE';
   const TYPE_STRING                      = 'STRING';
   const TYPE_MEDIAMOSA_VERSION           = 'MEDIAMOSA_VERSION';
   const TYPE_DATETIME                    = 'DATETIME';
-  const TYPE_DATETIME_UTC                = 'DATETIME_UTC'; // Is in UTC (already).
-  const TYPE_DATE                        = 'DATETIME';//@todo: Extend the DATETIME check and throw errors when time values exist. REMEMBER about utc conversion.
-  const TYPE_TIME                        = 'DATETIME';//@todo: Extend the DATETIME check and throw errors when date values exist. REMEMBER about utc conversion.
+  const TYPE_DATETIME_UTC                = 'DATETIME_UTC';
+  const TYPE_DATE                        = 'DATETIME';
+  const TYPE_TIME                        = 'DATETIME';
   const TYPE_BOOL                        = 'BOOL';
   const TYPE_MIMETYPE                    = 'MIMETYPE';
   const TYPE_XML                         = 'STRING';
-  const TYPE_XML_VALIDATED               = 'XML'; // XML with syntax validation via simplexml_load_string(). Expects proper XML declaration.
-  const TYPE_XML_OAI                     = 'XML_OAI'; // XML with syntax validation via DOM Document. Expects no XML declaration.
-  const TYPE_EOR                         = 'EOR'; // Exclusive OR type (like 1 2 4 8, or 1|4 = 5), always UINT
-  const TYPE_URI                         = 'URI'; // URI type
-  const TYPE_URL                         = 'URL'; // URL type (checked with simple parse_url)
-  const TYPE_URL_URI                     = 'URL'; // URL / URI type (checked with simple parse_url)
+  // XML with syntax validation via simplexml_load_string(). Expects proper XML
+  // declaration.
+  const TYPE_XML_VALIDATED               = 'XML';
+  // XML with syntax validation via DOM Document. Expects no XML declaration.
+  const TYPE_XML_OAI                     = 'XML_OAI';
+  // Exclusive OR type (like 1 2 4 8, or 1|4 = 5), always unsigned integer.
+  const TYPE_EOR                         = 'EOR';
+  // URI type.
+  const TYPE_URI                         = 'URI';
+  // URL type (checked with simple parse_url).
+  const TYPE_URL                         = 'URL';
+  // URL / URI type (checked with simple parse_url).
+  const TYPE_URL_URI                     = 'URL';
   const TYPE_ACL_GROUP_TYPE              = 'ACL_GROUP_TYPE';
   const TYPE_DELETE                      = 'DELETE';
   const TYPE_OAUTH_SIGNATURE             = 'OAUTH_SIGNATURE';
@@ -291,7 +306,8 @@ class mediamosa_sdk {
 
   const TYPE_ORDER_DIRECTION             = 'ORDER_DIRECTION';
   const TYPE_LIMIT                       = 'LIMIT';
-  const TYPE_OPERATOR                    = 'OPERATOR'; // OR / AND.
+  // OR / AND.
+  const TYPE_OPERATOR                    = 'OPERATOR';
 
   const TYPE_SEARCH_STRING               = 'SEARCH_STRING';
   const TYPE_SEARCH_INT                  = 'SEARCH_INT';
@@ -310,6 +326,9 @@ class mediamosa_sdk {
   // Use to select what is slaved to other apps.
   const TYPE_BOOL_IS_SLAVED              = 'BOOL_IS_SLAVED';
 
+  // For upload files.
+  const TYPE_FILE                        = 'FILE';
+
   // Job constants.
   const JOB_STATUS = 'status';
   const JOB_STATUS_WAITING = 'WAITING';
@@ -317,7 +336,7 @@ class mediamosa_sdk {
   const JOB_STATUS_FINISHED = 'FINISHED';
   const JOB_STATUS_FAILED = 'FAILED';
   const JOB_STATUS_CANCELLED = 'CANCELLED';
-  const JOB_STATUS_CANCELLING = 'CANCELING';// Future exp; THIS IS NOT YET ADDED TO THE ENUM IN DB 'job' table.
+  const JOB_STATUS_CANCELLING = 'CANCELING';
   const PROGRESS = 'progress';
   const JOB_TYPE = 'job_type';
   const JOB_TYPE_TRANSCODE = 'TRANSCODE';
@@ -328,65 +347,6 @@ class mediamosa_sdk {
   const JOB_TYPE_DELETE_MEDIAFILE = 'DELETE_MEDIAFILE';
 
   // ---------------------------------------------------------------- Functions.
-  /**
-   * Return the base URL for the SDK menu/URL.
-   */
-  public static function get_base_url() {
-    return module_exists('mediamosa_maintenance') ? 'admin/mediamosa/config' : 'admin/config';
-  }
-
-  /**
-   * Convert possible alias to real type.
-   * F.e TYPE_GROUP_ID is actually a TYPE_ALPHA_NUM
-   *
-   * @param string $type
-   */
-  public static function typeAlias2Type($type) {
-
-    switch ($type) {
-      case self::TYPE_SUPPLEMENT_ID:
-      case self::TYPE_USER_ID:
-      case self::TYPE_GROUP_ID:
-      case self::TYPE_ASSET_ID:
-      case self::TYPE_MEDIAFILE_ID:
-      case self::TYPE_COLLECTION_ID:
-      case self::TYPE_BATCH_ID:
-      case self::TYPE_JOB:
-        return self::TYPE_ALPHA_NUM;
-
-      case self::TYPE_SEARCH_BOOL:
-        return self::TYPE_BOOL;
-
-      case self::TYPE_OPERATOR:
-      case self::TYPE_ORDER_DIRECTION:
-        return self::TYPE_ALPHA;
-
-      case self::TYPE_SEARCH_MATCH:
-      case self::TYPE_SEARCH_STRING:
-      case self::TYPE_DOMAIN:
-      case self::TYPE_REALM:
-      case self::TYPE_CQL_ASSET:
-      case self::TYPE_CQL_COLLECTION:
-      case self::TYPE_CQL_JOB:
-      case self::TYPE_OAUTH_SIGNATURE:
-      case self::TYPE_OAUTH_SIGNATURE_METHOD:
-      case self::TYPE_OAUTH_VERSION:
-      case self::TYPE_OAUTH_TOKEN:
-      case self::TYPE_OAUTH_VERIFIER:
-        return self::TYPE_STRING;
-
-      case self::TYPE_SEARCH_INT:
-      case self::TYPE_LIMIT:
-        return self::TYPE_INT;
-
-      case self::TYPE_SEARCH_DATETIME:
-      case self::TYPE_DATETIME_UTC:
-        return self::TYPE_DATETIME;
-    }
-
-    return $type;
-  }
-
   /**
    * Check the language.
    *
@@ -399,17 +359,23 @@ class mediamosa_sdk {
    *   Returns TRUE when valid, FALSE otherwise.
    */
   public static function checkLanguage($value) {
-      // ISO 639-1.
-      $language_codes = explode(',', 'aa,ab,ae,af,ak,am,an,ar,as,av,ay,az,ba,be,bg,bh,bi,bm,bn,bo,br,bs,ca,ce,ch,co,cr,cs,cu,cv,cy,da,de,dv,dz,ee,el,en,eo,es,et,eu,fa,ff,fi,fj,fo,fr,fy,ga,gd,gl,gn,gu,gv,ha,he,hi,ho,hr,ht,hu,hy,hz,ia,id,ie,ig,ii,ik,io,is,it,iu,ja,jv,ka,kg,ki,kj,kk,kl,km,kn,ko,kr,ks,ku,kv,kw,ky,la,lb,lg,li,ln,lo,lt,lu,lv,mg,mh,mi,mk,ml,mn,mo,mr,ms,mt,my,na,nb,nd,ne,ng,nl,nn,no,nr,nv,ny,oc,oj,om,or,os,pa,pi,pl,ps,pt,qu,rm,rn,ro,ru,rw,ry,sa,sc,sd,se,sg,sh,si,sk,sl,sm,sn,so,sq,sr,ss,st,su,sv,sw,ta,te,tg,th,ti,tk,tl,tn,to,tr,ts,tt,tw,ty,ug,uk,ur,uz,ve,vi,vo,wa,wo,xh,yi,yo,za,zh,zu');
-      return in_array(drupal_strtolower($value), $language_codes);
+    // ISO 639-1.
+    $language_codes = explode(',', 'aa,ab,ae,af,ak,am,an,ar,as,av,ay,az,ba,be,bg,bh,bi,bm,bn,bo,br,bs,ca,ce,ch,co,cr,cs,cu,cv,cy,da,de,dv,dz,ee,el,en,eo,es,et,eu,fa,ff,fi,fj,fo,fr,fy,ga,gd,gl,gn,gu,gv,ha,he,hi,ho,hr,ht,hu,hy,hz,ia,id,ie,ig,ii,ik,io,is,it,iu,ja,jv,ka,kg,ki,kj,kk,kl,km,kn,ko,kr,ks,ku,kv,kw,ky,la,lb,lg,li,ln,lo,lt,lu,lv,mg,mh,mi,mk,ml,mn,mo,mr,ms,mt,my,na,nb,nd,ne,ng,nl,nn,no,nr,nv,ny,oc,oj,om,or,os,pa,pi,pl,ps,pt,qu,rm,rn,ro,ru,rw,ry,sa,sc,sd,se,sg,sh,si,sk,sl,sm,sn,so,sq,sr,ss,st,su,sv,sw,ta,te,tg,th,ti,tk,tl,tn,to,tr,ts,tt,tw,ty,ug,uk,ur,uz,ve,vi,vo,wa,wo,xh,yi,yo,za,zh,zu');
+    return in_array(drupal_strtolower($value), $language_codes);
   }
 
   /**
-   * Parse MediaMosa version.
+   * Parse MediaMosa version into usable split array elements.
    *
    * major.minor[.release[.build[ optional info]]]
    *
    * @return array
+   *   - 'major': Major version number, e.g. 3.
+   *   - 'minor': Minor version number, e.g. 6.
+   *   - 'release': Release version number, e.g. 0.
+   *   - 'build': Build number, e.g. 2200.
+   *   - 'info': Textual description, e,g. 'dev'.
+   *   In example used: '3.6.0.2200-dev'.
    */
   public static function parse_version($version) {
     list($major, $minor, $release, $build, $info) = preg_split("/[.:-]+/", $version, 5) + array(0 => 1, 1 => 0, 2 => 0, 3 => 1, 4 => '');
@@ -423,13 +389,41 @@ class mediamosa_sdk {
   }
 
   /**
-   * Returns the database stamp as a viewable date.
+   * Returns the database datetime as a viewable date.
    *
-   * @param string $datestamp
+   * You can use this function if you want to convert dates from MediaMosa
+   * output to 'viewable' version.
+   *
+   * @param string $date_stamp
    *   Format datetime; YYYY-MM-DD 00:00:00.
+   * @param string $type
+   *   (optional) The format to use, one of:
+   *   - One of the built-in formats: 'short', 'medium',
+   *     'long', 'html_datetime', 'html_date', 'html_time',
+   *     'html_yearless_date', 'html_week', 'html_month', 'html_year'.
+   *   - The name of a date type defined by a date format config entity.
+   *   - The machine name of an administrator-defined date format.
+   *   - 'custom', to use $format.
+   *   Defaults to 'medium'.
+   * @param string $format
+   *   (optional) If $type is 'custom', a PHP date format string suitable for
+   *   input to date(). Use a backslash to escape ordinary text, so it does not
+   *   get interpreted as date format characters.
+   * @param string $timezone
+   *   (optional) Time zone identifier, as described at
+   *   http://php.net/manual/timezones.php Defaults to the time zone used to
+   *   display the page.
+   * @param string $langcode
+   *   (optional) Language code to translate to. Defaults to the language used to
+   *   display the page.
+   *
+   * @return
+   *   A translated date string in the requested format.
+   *
+   * @see \Drupal\Core\Datetime\DateFormatter::format()
    */
-  public static function datestamp2date($datestamp, $type = 'medium', $format = '', $timezone = NULL, $langcode = NULL) {
-    return format_date(strtotime($datestamp), $type, $format, $timezone, $langcode);
+  public static function datestamp2date($date_stamp, $type = 'medium', $format = '', $timezone = NULL, $langcode = NULL) {
+    return \Drupal::service('date.formatter')->format(strtotime($date_stamp), $type, $format, $timezone, $langcode);
   }
 
   /**
@@ -465,12 +459,11 @@ class mediamosa_sdk {
    *       array('pattern' => '{term}*', 'vars' => array('{term}' => 'foo ')),
    *       'bar'
    *     );
-   */
-  //     Results into '1.*/2.foo%20*/3.bar/'
-  /*
+   * Results into 1.* /2.foo%20* /3.bar/
+   *
    * @return string
    *   The encoded string to use for CQL or storage for metadata.
-  */
+   */
   public static function metadata_encode_tag($vocabulary, array $term) {
     if (is_array($vocabulary)) {
       if (empty($vocabulary['vars'])) {
@@ -514,6 +507,8 @@ class mediamosa_sdk {
   /**
    * Escape values for CQL.
    *
+   * Use this function to prevent CQL user injections.
+   *
    * @param string $value
    *   The value to escape.
    *
@@ -522,5 +517,25 @@ class mediamosa_sdk {
    */
   public static function escape_cql($value) {
     return addslashes($value);
+  }
+
+  /**
+   * Checks if the given value is empty.
+   *
+   * A value is considered empty if it is null, an empty array, or the trimmed
+   * result is an empty string. Note that this method is different from PHP
+   * empty(). It will return false when the value is 0.
+   *
+   * @param mixed $value
+   *   The value to be checked.
+   * @param bool $trim
+   *   Whether to perform trimming before checking if the string is empty.
+   *   Defaults to false.
+   *
+   * @return boolean
+   *   Whether the value is empty.
+   */
+  public static function isEmpty($value, $trim = false) {
+    return $value === null || $value === array() || $value === '' || ($trim && is_scalar($value) && trim($value) === '');
   }
 }

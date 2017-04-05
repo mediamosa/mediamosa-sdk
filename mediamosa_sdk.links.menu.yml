@@ -1,0 +1,5 @@
+entity.mediamosa_connector.collection:
+  title: MediaMosa connectors
+  route_name: entity.mediamosa_connector.collection
+  description: 'Manage MediaMosa connectors.'
+  parent: system.admin_config_media

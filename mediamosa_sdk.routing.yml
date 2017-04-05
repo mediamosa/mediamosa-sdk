@@ -1,0 +1,43 @@
+mediamosa_sdk.connector_add:
+  path: '/admin/config/media/mediamosa-connector/add'
+  defaults:
+    _entity_form: mediamosa_connector.add
+    _title: 'Add MediaMosa connector'
+  requirements:
+    _permission: 'administer mediamosa connectors'
+
+entity.mediamosa_connector.edit_form:
+  path: '/admin/config/media/mediamosa-connector/manage/{mediamosa_connector}'
+  defaults:
+    _entity_form: mediamosa_connector.edit
+    _title: 'Edit MediaMosa connector'
+  requirements:
+    _permission: 'administer mediamosa connectors'
+
+entity.mediamosa_connector.delete_form:
+  path: '/admin/config/media/mediamosa-connector/manage/{mediamosa_connector}/delete'
+  defaults:
+    _entity_form: 'mediamosa_connector.delete'
+    _title: 'Delete MediaMosa connector'
+  requirements:
+    _permission: 'administer mediamosa connectors'
+
+entity.mediamosa_connector.verify:
+  path: '/admin/config/media/mediamosa-connector/manage/{mediamosa_connector}/verify'
+  defaults:
+    _controller: '\Drupal\mediamosa_sdk\Controller\MediaMosaConnectorController::verify'
+  options:
+    no_cache: TRUE
+    parameters:
+      mediamosa_connector:
+        type: mediamosa_connector
+  requirements:
+    _permission: 'administer mediamosa connectors'
+
+entity.mediamosa_connector.collection:
+  path: '/admin/config/media/mediamosa-connector'
+  defaults:
+    _entity_list: 'mediamosa_connector'
+    _title: 'MediaMosa connectors'
+  requirements:
+    _permission: 'administer mediamosa connectors'

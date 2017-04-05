@@ -1,48 +1,108 @@
-MediaMosa Software Development Kit
-==================================
+MediaMosa Software Development Kit for Drupal 8 (alpha)
+=======================================================
 
-The MediaMosa SDK has been developed for Drupal 6 and Drupal 7. These PHP API tools will enable developers to connect front-end applications (like websites) to the back-end (MediaMosa).
+The MediaMosa SDK has been developed for Drupal 6, 7 and 8. These PHP API tools will enable developers to connect 
+front-end applications to the back-end REST interface of MediaMosa.
 
-There are slight differences between Drupal 6 and Drupal 7 versions of the SDK. Although the *.class.inc are the same on both versions.
+The structure and file names for Drupal 8 has been changed significantly compared to 6 and 7 versions. Please note the
+changes below.
 
+- The mediamosa_sdk class has been renamed to Drupal\mediamosa_sdk\MediaMosaSDK. File name has been renamed to 
+MediaMosaSDK.php.
+- The SDK contains the Drupal service class MediaMosaSDKService.
+- In this version you can add multiple connectors with different IDs (machine names).
+- Connector setup is exported and imported using the Drupal config.
 
-The files
----------
+Security notice
+---------------
 
-- mediamosa_sdk.class.inc (6.x / 7.x)
-  This file contains the main class and contants used by front-end and back-end application.
-
-- mediamosa_sdk.* (6.x / 7.x)
-  These files are Drupal related.
-
-- mediamosa_connector/* (6.x / 7.x)
-  This is the connector module. You can reuse the mediamosa_connector.class.inc and mediamosa_connector.response.class.inc in your own code when not using the Drupal code.
-
-  - mediamosa_connector.class.inc
-    This class is your connector class that will allow your code to connect and execute REST calls on MediaMosa REST interface(s).
-
-  - mediamosa_connector.response.class.inc
-    This object is return each time you execute a REST call.
-
-  - mediamosa_connector.response.asset.class.inc
-    This object can be used for the /asset REST call. @see MediaMosaCkConnectorWrapper::get_asset().
-
-- mediamosa_development/* (6.x / 7.x)
-  The mediamosa_development Drupal module allows developers to test and run REST calls directly using a form.
-
-- mediamosa_restcalls_post2get/* (7.x)
-  This Drupal module maps all POST REST call to /post2get/[rest call] for GET method. Allows you to use POST calls as GET.
-
+As the connector information is exported using Drupal config, please take note that the shared key information is also
+exported and is clearly readable in export yml files.
 
 Usage
 -----
-$my_mediamosa_connector = new mediamosa_connector('testapp', 'password', 'http://app1.mediamosa.local');
 
-try {
-  $response = $my_mediamosa_connector->request('version', array('fatal' => TRUE));
-}
-catch (Exception $e) {
-  // .. something went wrong.
-  // Do some handeling of the exception here and don't continue for this point.
-}
+Enable MediaMosa SDK Drupal 8 module.
 
+Add connector using the interface on /admin/config/media/mediamosa-connector. You can add different connectors for
+different MediaMosa back-ends. As these connectors are also exported with Drupal config, is good idea to create 
+different connectors for each development stage, e.g. staging_connector, accept_connector and production_connector. In 
+code you can choose the connector based on your environment. You can even add multiple connectors using the same login
+information, but using different REST back-end URLs. The machine name (Connector ID) uniquely identifies the connector.
+
+Enabling verbose also requires to enabe the verbose MediaMosa block. You can do this on the block page in Drupal 
+(/admin/structure/block -> place block).
+
+When adding the connector in Drupal, enter the machine name as the unique ID of the connector. You must use the machine 
+name (CONNECTOR ID column in listing) to create the connector object in PHP;
+
+```php
+use Drupal\mediamosa_sdk\MediaMosaSDKService;
+
+$mediamosa_connector = MediaMosaSDKService::getService()->getConnector('accept_connector');
+```
+
+Note that $mediamosa_connector can be NULL when connector was not found.
+
+```php
+if ($mediamosa_connector instanceof MediaMosaConnector) {
+  ...
+}
+else {
+  // Unable to get connector, check settings, log or display message to user.
+}
+```
+
+Calling REST, e.g. '/asset' (listing of assets).
+
+```php
+use Drupal\mediamosa_sdk\Entity\MediaMosaConnector;
+
+$mediamosa_connector = MediaMosaSDKService::getService()->getConnector('test');
+if ($mediamosa_connector instanceof MediaMosaConnector) {
+  try {
+    $response = $mediamosa_connector->requestGet('asset');
+    
+    if ($response->isError()) {
+      // Act on MediaMosa errors.
+    }
+    
+    foreach ($response->getItems() as $item) {
+      // The items in response.
+    }
+
+  }
+  catch (MediaMosaConnectorExceptionFailedLogin $e) {
+    // Failed connector login.
+  }
+  catch (MediaMosaConnectorExceptionInvalidResponse $e) {
+    // Got invalid response.
+  }
+  catch (MediaMosaConnectorExceptionNotSetup $e) {
+    // Connector is incorrect.
+  }
+  catch (MediaMosaException $e) {
+    // Other Exception.
+    // You can use $e->getPrevious() for catched Exceptions that where
+    // caught by connector that where other type than MediaMosaException.
+  }
+}
+else {
+  // No connector found, check settings, log and or display message to user.
+}
+```
+
+Notes about the MediaMosaResponse class
+---------------------------------------
+
+Although this class will return SimpleXMLIterator on XML responses and will act as an SimpleXMLElement, do not assume 
+that this will continue in the future. It will return object compatible with MediaMosaResponseIterator class that we
+will extend in the future. 
+
+The response class allows you to iterate as array and retrieve data using -> operator, e.g. $items[0]->item->asset_id.
+Do not assume string is returned on data either, its good practise to cast values to string;
+```php
+$asset_id = (string) $items[0]->item->asset_id
+```
+
+The convertor function for XML to array has not been ported. This was already deprecated in Drupal 7 version.

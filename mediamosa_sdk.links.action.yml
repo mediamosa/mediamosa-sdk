@@ -1,0 +1,5 @@
+mediamosa_connector_add_action:
+  route_name: mediamosa_sdk.connector_add
+  title: 'Add connector'
+  appears_on:
+    - entity.mediamosa_connector.collection

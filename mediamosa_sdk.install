@@ -2,15 +2,5 @@
 
 /**
  * @file
- * MediaMosa Sofware Development Kit install file.
+ * Install, update and uninstall functions for the MediaMosa SDK module.
  */
-
-/**
- * Rebuild the registry.
- */
-function mediamosa_sdk_update_7000() {
-  // Rebuild the registry.
-  db_query('DELETE FROM {registry}'); // Don't worry, I know what I'm doing.
-  db_query('DELETE FROM {registry_file}'); // Clear it too.
-  drupal_flush_all_caches();
-}
