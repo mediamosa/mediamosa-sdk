@@ -214,7 +214,8 @@ class MediaMosaConnector extends ConfigEntityBase implements MediaMosaConnectorI
    * @param string $method
    *   (default 'GET') A string containing the request method.
    * @param array $data
-   *   The body parameter to POST.
+   *   (optional) Additional data for REST call.
+   *     A array as name => value.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
    *   - fatal:
@@ -305,7 +306,8 @@ class MediaMosaConnector extends ConfigEntityBase implements MediaMosaConnectorI
    * @param string $method
    *   (default GET) A string containing the request method.
    * @param array $data
-   *   The body parameter to POST.
+   *   (optional) Additional data for REST call.
+   *     A array as name => value.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
    *   - headers:

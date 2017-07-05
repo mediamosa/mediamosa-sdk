@@ -71,7 +71,7 @@ class MediaMosaSDKService {
    * @param string $method
    *   (default GET) A string containing the request method.
    * @param array $data
-   *   The body parameter to POST.
+   *   The GET/POST parameters.
    * @param array $options
    *   (optional) An array which can have one or more of following keys:
    *   - headers:
@@ -90,11 +90,18 @@ class MediaMosaSDKService {
     );
 
     try {
-      $response = \Drupal::httpClient()
-        ->request($method, (string) $uri, array(
-          'headers' => $headers,
-          'form_params' => $data
-        ));
+      $options = array(
+        'headers' => $headers,
+      );
+
+      if (strtoupper($method) === 'POST') {
+        $options['form_params'] = $data;
+      }
+      else {
+        $options['query'] = $data;
+      }
+
+      $response = \Drupal::httpClient()->request($method, (string) $uri, $options);
       /* @var $response ResponseInterface */
     }
     catch (\Exception $e) {
