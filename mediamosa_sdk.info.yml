@@ -3,7 +3,7 @@ type: module
 description: MediaMosa Software development kit for front-ends.
 core: 8.x
 package: MediaMosa
-version: '8.x-1.0-dev'
+version: '8.x-1.1-dev'
 
 dependencies:
   - block
